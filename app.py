@@ -49,7 +49,7 @@ def send_message(chat_id, text):
         print("Telegram send error:", e)
 
 # =========================
-# STOCK SEARCH FUNCTION (FIXED)
+# STOCK SEARCH FUNCTION
 # =========================
 def get_stock_data(sheet, text):
     values = sheet.get_all_values()
@@ -61,7 +61,6 @@ def get_stock_data(sheet, text):
 
         stock_name = row[0].strip().upper()
 
-        # FLEXIBLE MATCHING
         if (
             text == stock_name or
             text in stock_name or
@@ -94,47 +93,32 @@ def format_table(title, data):
 @app.route("/", methods=["POST"])
 def webhook():
     data = request.get_json()
-
     print("📩 UPDATE RECEIVED:", data)
 
     text = None
     chat_id = None
 
-    # HANDLE CHANNEL POSTS
-    data = request.get_json()
+    # Handle both message & channel
+    if "channel_post" in data:
+        text = data["channel_post"].get("text")
+        chat_id = data["channel_post"]["chat"]["id"]
 
-text = None
-chat_id = None
+    elif "message" in data:
+        text = data["message"].get("text")
+        chat_id = data["message"]["chat"]["id"]
 
-if "channel_post" in data:
-    text = data["channel_post"]["text"]
-    chat_id = data["channel_post"]["chat"]["id"]
-
-elif "message" in data:
-    text = data["message"]["text"]
-    chat_id = data["message"]["chat"]["id"]
-
-print("TEXT:", text)
-
-text = None
-chat_id = None
-
-if "channel_post" in data:
-    text = data["channel_post"]["text"]
-    chat_id = data["channel_post"]["chat"]["id"]
-
-elif "message" in data:
-    text = data["message"]["text"]
-    chat_id = data["message"]["chat"]["id"]
-
-print("TEXT:", text)
+    print("TEXT:", text)
 
     if not text:
         return "ok"
 
     text = text.upper().strip()
 
-    # now your stock logic runs here
+    # =========================
+    # GET STOCK DATA
+    # =========================
+    up = get_stock_data(uptrend_sheet, text)
+    down = get_stock_data(downtrend_sheet, text)
 
     # =========================
     # RESPONSE LOGIC
@@ -190,7 +174,7 @@ print("TEXT:", text)
 # =========================
 # HOME ROUTE
 # =========================
-@app.route("/")
+@app.route("/", methods=["GET"])
 def home():
     return "Bot Running ✅"
 
