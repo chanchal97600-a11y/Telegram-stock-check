@@ -97,23 +97,25 @@ def webhook():
 
     print("📩 UPDATE RECEIVED:", data)
 
-    if not data:
-        return "ok"
+    text = None
+    chat_id = None
 
-    msg = data.get("message")
-    if not msg:
-        return "ok"
+    # HANDLE CHANNEL POSTS
+    if "channel_post" in data:
+        text = data["channel_post"]["text"]
+        chat_id = data["channel_post"]["chat"]["id"]
 
-    text = msg.get("text", "").upper().strip()
-    chat_id = msg["chat"]["id"]
+    # HANDLE NORMAL MESSAGES
+    elif "message" in data:
+        text = data["message"].get("text", "")
+        chat_id = data["message"]["chat"]["id"]
 
     if not text:
         return "ok"
 
-    print("🔎 Searching for:", text)
+    text = text.upper().strip()
 
-    up = get_stock_data(uptrend_sheet, text)
-    down = get_stock_data(downtrend_sheet, text)
+    # now your stock logic runs here
 
     # =========================
     # RESPONSE LOGIC
