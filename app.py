@@ -8,6 +8,9 @@ from flask import Flask, request
 # =========================
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 
+if not TELEGRAM_TOKEN:
+    raise Exception("TELEGRAM_TOKEN not set in environment variables")
+
 app = Flask(__name__)
 
 # =========================
@@ -17,7 +20,7 @@ creds_dict = {
     "type": os.environ.get("type"),
     "project_id": os.environ.get("project_id"),
     "private_key_id": os.environ.get("private_key_id"),
-    "private_key": os.environ.get("private_key").replace("\\n", "\n"),
+    "private_key": (os.environ.get("private_key") or "").replace("\\n", "\n"),
     "client_email": os.environ.get("client_email"),
     "client_id": os.environ.get("client_id"),
     "auth_uri": os.environ.get("auth_uri"),
@@ -39,17 +42,31 @@ downtrend_sheet = file.worksheet("Downtrend")
 # TELEGRAM SEND FUNCTION
 # =========================
 def send_message(chat_id, text):
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    requests.post(url, json={"chat_id": chat_id, "text": text})
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+        requests.post(url, json={"chat_id": chat_id, "text": text})
+    except Exception as e:
+        print("Telegram send error:", e)
 
 # =========================
-# GET STOCK DATA
+# STOCK SEARCH FUNCTION (FIXED)
 # =========================
 def get_stock_data(sheet, text):
     values = sheet.get_all_values()
+    text = text.strip().upper()
 
     for row in values[1:]:
-        if text in row[0].upper():
+        if not row:
+            continue
+
+        stock_name = row[0].strip().upper()
+
+        # FLEXIBLE MATCHING
+        if (
+            text == stock_name or
+            text in stock_name or
+            stock_name.replace(".NS", "") == text
+        ):
             return {
                 "stock": row[0],
                 "trades": row[1],
@@ -58,79 +75,94 @@ def get_stock_data(sheet, text):
                 "timeout": row[4],
                 "winrate": row[6]
             }
+
     return None
 
 # =========================
-# FORMAT TABLE
+# FORMAT MESSAGE
 # =========================
 def format_table(title, data):
     return (
         f"\n📊 {title}\n"
         "Trades | Wins | Loss | Timeout | Win%\n"
-        f"{data['trades']} | {data['wins']} | {data['losses']} | {data['timeout']} | {data['winrate']}"
+        f"{data['trades']} | {data['wins']} | {data['losses']} | {data['timeout']} | {data['winrate']}\n"
     )
 
 # =========================
-# WEBHOOK
+# WEBHOOK ROUTE
 # =========================
 @app.route(f"/{TELEGRAM_TOKEN}", methods=["POST"])
 def webhook():
     data = request.get_json()
 
-    if "message" in data:
-        chat_id = data["message"]["chat"]["id"]
-        text = data["message"].get("text", "").upper().strip()
+    print("📩 UPDATE RECEIVED:", data)
 
-        up = get_stock_data(uptrend_sheet, text)
-        down = get_stock_data(downtrend_sheet, text)
+    if not data:
+        return "ok"
 
-        if up and down:
-            up_wr = float(up["winrate"].replace("%", ""))
-            down_wr = float(down["winrate"].replace("%", ""))
+    msg = data.get("message")
+    if not msg:
+        return "ok"
 
-            if up_wr > down_wr:
-                better = "BULLISH MARKET 🟢"
-                mood = "😃 Strong bullish performance!"
-            elif down_wr > up_wr:
-                better = "BEARISH MARKET 🔴"
-                mood = "😎 Better in bearish conditions!"
-            else:
-                better = "BOTH MARKETS ⚖️"
-                mood = "🙂 Balanced performance"
+    text = msg.get("text", "").upper().strip()
+    chat_id = msg["chat"]["id"]
 
-            message = (
-                f"\n📊 Stock: {up['stock']}\n\n"
-                "✅ Working in BOTH Bullish and Bearish market\n\n"
-                f"🚀 Better in: {better}\n\n"
-                f"📈 Bullish Win Rate: {up['winrate']}\n"
-                f"📉 Bearish Win Rate: {down['winrate']}\n\n"
-                f"{mood}\n"
-                "━━━━━━━━━━━━━━━"
-                f"{format_table('BULLISH MARKET 🟢', up)}\n"
-                "━━━━━━━━━━━━━━━"
-                f"{format_table('BEARISH MARKET 🔴', down)}"
-            )
+    if not text:
+        return "ok"
 
-        elif up:
-            message = (
-                f"\n📊 Stock: {up['stock']}\n\n"
-                "🟢 Only in Bullish Market\n"
-                "😃 Strong upward trend\n"
-                f"{format_table('BULLISH MARKET 🟢', up)}"
-            )
+    print("🔎 Searching for:", text)
 
-        elif down:
-            message = (
-                f"\n📊 Stock: {down['stock']}\n\n"
-                "🔴 Only in Bearish Market\n"
-                "⚠️ Works better in falling market\n"
-                f"{format_table('BEARISH MARKET 🔴', down)}"
-            )
+    up = get_stock_data(uptrend_sheet, text)
+    down = get_stock_data(downtrend_sheet, text)
 
+    # =========================
+    # RESPONSE LOGIC
+    # =========================
+    if up and down:
+        up_wr = float(up["winrate"].replace("%", ""))
+        down_wr = float(down["winrate"].replace("%", ""))
+
+        if up_wr > down_wr:
+            better = "BULLISH MARKET 🟢"
+            mood = "😃 Strong bullish performance!"
+        elif down_wr > up_wr:
+            better = "BEARISH MARKET 🔴"
+            mood = "😎 Better in bearish conditions!"
         else:
-            message = "❌ Stock not found"
+            better = "BOTH MARKETS ⚖️"
+            mood = "🙂 Balanced performance"
 
-        send_message(chat_id, message)
+        message = (
+            f"📊 Stock: {up['stock']}\n\n"
+            "✅ Available in BOTH markets\n\n"
+            f"🚀 Better in: {better}\n\n"
+            f"📈 Bullish Win Rate: {up['winrate']}\n"
+            f"📉 Bearish Win Rate: {down['winrate']}\n\n"
+            f"{mood}\n"
+            "━━━━━━━━━━━━━━━"
+            f"{format_table('BULLISH 🟢', up)}"
+            "━━━━━━━━━━━━━━━"
+            f"{format_table('BEARISH 🔴', down)}"
+        )
+
+    elif up:
+        message = (
+            f"📊 Stock: {up['stock']}\n\n"
+            "🟢 Only in Bullish Market\n"
+            f"{format_table('BULLISH 🟢', up)}"
+        )
+
+    elif down:
+        message = (
+            f"📊 Stock: {down['stock']}\n\n"
+            "🔴 Only in Bearish Market\n"
+            f"{format_table('BEARISH 🔴', down)}"
+        )
+
+    else:
+        message = f"❌ Stock '{text}' not found in sheet"
+
+    send_message(chat_id, message)
 
     return "ok"
 
