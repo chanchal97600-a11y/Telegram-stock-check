@@ -91,7 +91,7 @@ def format_table(title, data):
 # =========================
 # WEBHOOK ROUTE
 # =========================
-@app.route(f"/{TELEGRAM_TOKEN}", methods=["POST"])
+@app.route("/", methods=["POST"])
 def webhook():
     data = request.get_json()
 
