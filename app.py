@@ -35,47 +35,68 @@ gc = gspread.service_account_from_dict(creds_dict)
 # OPEN GOOGLE SHEET
 # =========================
 file = gc.open("PARABOLIC SAR")
+
 uptrend_sheet = file.worksheet("Uptrend")
 downtrend_sheet = file.worksheet("Downtrend")
+
+# 🔥 DEBUG (VERY IMPORTANT)
+print("UP SHEET:", uptrend_sheet.title, uptrend_sheet.id)
+print("DOWN SHEET:", downtrend_sheet.title, downtrend_sheet.id)
 
 # =========================
 # TELEGRAM SEND FUNCTION
 # =========================
 def send_message(chat_id, text):
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         requests.post(url, json={"chat_id": chat_id, "text": text})
     except Exception as e:
-        print("Telegram send error:", e)
+        print("Telegram error:", e)
+
+# =========================
+# NORMALIZE FUNCTION
+# =========================
+def normalize(text):
+    return str(text).strip().upper().replace(".NS", "")
 
 # =========================
 # STOCK SEARCH FUNCTION
 # =========================
 def get_stock_data(sheet, text):
-    values = sheet.get_all_values()
-    text = text.strip().upper()
+    try:
+        values = sheet.get_all_values()
+        text = normalize(text)
 
-    for row in values[1:]:
-        if not row:
-            continue
+        for row in values[1:]:
+            if not row:
+                continue
 
-        stock_name = row[0].strip().upper()
+            stock_name = normalize(row[0])
 
-        if (
-            text == stock_name or
-            text in stock_name or
-            stock_name.replace(".NS", "") == text
-        ):
-            return {
-                "stock": row[0],
-                "trades": row[1],
-                "wins": row[2],
-                "losses": row[3],
-                "timeout": row[4],
-                "winrate": row[6]
-            }
+            if text == stock_name:
+                return {
+                    "stock": row[0],
+                    "trades": row[1],
+                    "wins": row[2],
+                    "losses": row[3],
+                    "timeout": row[4],
+                    "winrate": row[6]
+                }
 
-    return None
+        return None
+
+    except Exception as e:
+        print("Sheet error:", e)
+        return None
+
+# =========================
+# SAFE WINRATE
+# =========================
+def safe_winrate(x):
+    try:
+        return float(str(x).replace("%", "").strip())
+    except:
+        return 0.0
 
 # =========================
 # FORMAT MESSAGE
@@ -88,17 +109,17 @@ def format_table(title, data):
     )
 
 # =========================
-# WEBHOOK ROUTE
+# WEBHOOK
 # =========================
 @app.route("/", methods=["POST"])
 def webhook():
     data = request.get_json()
-    print("📩 UPDATE RECEIVED:", data)
+
+    print("UPDATE:", data)
 
     text = None
     chat_id = None
 
-    # Handle both message & channel
     if "channel_post" in data:
         text = data["channel_post"].get("text")
         chat_id = data["channel_post"]["chat"]["id"]
@@ -107,25 +128,26 @@ def webhook():
         text = data["message"].get("text")
         chat_id = data["message"]["chat"]["id"]
 
-    print("TEXT:", text)
-
     if not text:
         return "ok"
 
     text = text.upper().strip()
 
     # =========================
-    # GET STOCK DATA
+    # SEARCH BOTH SHEETS
     # =========================
     up = get_stock_data(uptrend_sheet, text)
     down = get_stock_data(downtrend_sheet, text)
+
+    print("UP RESULT:", up)
+    print("DOWN RESULT:", down)
 
     # =========================
     # RESPONSE LOGIC
     # =========================
     if up and down:
-        up_wr = float(up["winrate"].replace("%", ""))
-        down_wr = float(down["winrate"].replace("%", ""))
+        up_wr = safe_winrate(up["winrate"])
+        down_wr = safe_winrate(down["winrate"])
 
         if up_wr > down_wr:
             better = "BULLISH MARKET 🟢"
@@ -172,14 +194,14 @@ def webhook():
     return "ok"
 
 # =========================
-# HOME ROUTE
+# HOME
 # =========================
 @app.route("/", methods=["GET"])
 def home():
     return "Bot Running ✅"
 
 # =========================
-# RUN APP
+# RUN
 # =========================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
