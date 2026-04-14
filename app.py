@@ -101,12 +101,20 @@ def webhook():
     chat_id = None
 
     # HANDLE CHANNEL POSTS
-    if "channel_post" in data:
-        text = data["channel_post"]["text"]
-        chat_id = data["channel_post"]["chat"]["id"]
-
-    # HANDLE NORMAL MESSAGES
     data = request.get_json()
+
+text = None
+chat_id = None
+
+if "channel_post" in data:
+    text = data["channel_post"]["text"]
+    chat_id = data["channel_post"]["chat"]["id"]
+
+elif "message" in data:
+    text = data["message"]["text"]
+    chat_id = data["message"]["chat"]["id"]
+
+print("TEXT:", text)
 
 text = None
 chat_id = None
