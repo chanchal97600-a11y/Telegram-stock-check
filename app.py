@@ -1,6 +1,7 @@
 import os
 import gspread
 import requests
+import yfinance as yf
 from flask import Flask, request
 
 # =========================
@@ -39,7 +40,6 @@ file = gc.open("PARABOLIC SAR")
 uptrend_sheet = file.worksheet("Uptrend")
 downtrend_sheet = file.worksheet("Downtrend")
 
-# 🔥 DEBUG (VERY IMPORTANT)
 print("UP SHEET:", uptrend_sheet.title, uptrend_sheet.id)
 print("DOWN SHEET:", downtrend_sheet.title, downtrend_sheet.id)
 
@@ -58,6 +58,43 @@ def send_message(chat_id, text):
 # =========================
 def normalize(text):
     return str(text).strip().upper().replace(".NS", "")
+
+# =========================
+# FUNDAMENTAL DATA (YAHOO)
+# =========================
+def get_fundamental_data(symbol):
+    try:
+        ticker = yf.Ticker(symbol + ".NS")
+        info = ticker.info
+
+        return {
+            "market_cap": info.get("marketCap"),
+            "pe": info.get("trailingPE"),
+            "eps": info.get("trailingEps"),
+            "sector": info.get("sector")
+        }
+
+    except Exception as e:
+        print("Yahoo error:", e)
+        return None
+
+def format_fundamental(data):
+    if not data:
+        return "\n⚠️ Fundamental data not available\n"
+
+    mc = data.get("market_cap")
+    if mc:
+        mc = f"{mc/1e7:.2f} Cr"
+    else:
+        mc = "N/A"
+
+    return (
+        "\n📊 FUNDAMENTALS\n"
+        f"Market Cap: {mc}\n"
+        f"PE Ratio: {data.get('pe', 'N/A')}\n"
+        f"EPS: {data.get('eps', 'N/A')}\n"
+        f"Sector: {data.get('sector', 'N/A')}\n"
+    )
 
 # =========================
 # STOCK SEARCH FUNCTION
@@ -133,6 +170,9 @@ def webhook():
 
     text = text.upper().strip()
 
+    # 🔥 FETCH FUNDAMENTALS
+    fundamental = get_fundamental_data(text)
+
     # =========================
     # SEARCH BOTH SHEETS
     # =========================
@@ -160,8 +200,9 @@ def webhook():
             mood = "🙂 Balanced performance"
 
         message = (
-            f"📊 Stock: {up['stock']}\n\n"
-            "✅ Available in BOTH markets\n\n"
+            f"📊 Stock: {up['stock']}\n"
+            + format_fundamental(fundamental) +
+            "\n✅ Available in BOTH markets\n\n"
             f"🚀 Better in: {better}\n\n"
             f"📈 Bullish Win Rate: {up['winrate']}\n"
             f"📉 Bearish Win Rate: {down['winrate']}\n\n"
@@ -174,20 +215,25 @@ def webhook():
 
     elif up:
         message = (
-            f"📊 Stock: {up['stock']}\n\n"
-            "🟢 Only in Bullish Market\n"
+            f"📊 Stock: {up['stock']}\n"
+            + format_fundamental(fundamental) +
+            "\n🟢 Only in Bullish Market\n"
             f"{format_table('BULLISH 🟢', up)}"
         )
 
     elif down:
         message = (
-            f"📊 Stock: {down['stock']}\n\n"
-            "🔴 Only in Bearish Market\n"
+            f"📊 Stock: {down['stock']}\n"
+            + format_fundamental(fundamental) +
+            "\n🔴 Only in Bearish Market\n"
             f"{format_table('BEARISH 🔴', down)}"
         )
 
     else:
-        message = f"❌ Stock '{text}' not found in sheet"
+        message = (
+            f"❌ Stock '{text}' not found in sheet\n"
+            + format_fundamental(fundamental)
+        )
 
     send_message(chat_id, message)
 
