@@ -9,8 +9,14 @@ from flask import Flask, request
 # =========================
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 
+# ✅ ADDED (from Railway variable)
+TELEGRAM_CHANNEL = os.environ.get("TELEGRAM_CHANNEL")
+
 if not TELEGRAM_TOKEN:
     raise Exception("TELEGRAM_TOKEN not set in environment variables")
+
+if not TELEGRAM_CHANNEL:
+    raise Exception("TELEGRAM_CHANNEL not set in environment variables")
 
 app = Flask(__name__)
 
@@ -197,9 +203,33 @@ def webhook():
     text = text.strip()
 
     # =========================
-    # HANDLE START
+    # HANDLE START (WITH SUBSCRIBE)
     # =========================
     if text.upper() == "/START":
+
+        try:
+            url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChatMember"
+            res = requests.get(url, params={
+                "chat_id": TELEGRAM_CHANNEL,
+                "user_id": chat_id
+            }).json()
+
+            status = res.get("result", {}).get("status")
+
+            if status not in ["member", "administrator", "creator"]:
+                join_msg = (
+                    "🚫 Please join our channel first to use this bot\n\n"
+                    f"👉 https://t.me/{TELEGRAM_CHANNEL.replace('@','')}\n\n"
+                    "After joining, press /start again"
+                )
+                send_message(chat_id, join_msg)
+                return "ok"
+
+        except Exception as e:
+            print("Join check error:", e)
+            send_message(chat_id, "⚠️ Error checking subscription. Try again.")
+            return "ok"
+
         welcome_msg = (
             "👋 Welcome to Stock Bot\n\n"
             "Send me any stock name (e.g. RELIANCE, TCS, INFY)\n"
@@ -225,21 +255,11 @@ def webhook():
 
     text = text.upper()
 
-    # 🔥 FETCH FUNDAMENTALS
     fundamental = get_fundamental_data(text)
 
-    # =========================
-    # SEARCH BOTH SHEETS
-    # =========================
     up = get_stock_data(uptrend_sheet, text)
     down = get_stock_data(downtrend_sheet, text)
 
-    print("UP RESULT:", up)
-    print("DOWN RESULT:", down)
-
-    # =========================
-    # RESPONSE LOGIC
-    # =========================
     if up and down:
         up_wr = safe_winrate(up["winrate"])
         down_wr = safe_winrate(down["winrate"])
