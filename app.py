@@ -242,25 +242,29 @@ def webhook():
     up = get_stock_data(uptrend_sheet, text)
     down = get_stock_data(downtrend_sheet, text)
 
-    if up and down:
-        up_wr = safe_winrate(up["winrate"])
-        down_wr = safe_winrate(down["winrate"])
+   if up and down:
+    up_wr = safe_winrate(up["winrate"])
+    down_wr = safe_winrate(down["winrate"])
 
-        if up_wr > down_wr:
-            suggestion = "✅ Better to BUY in UPTREND (Higher Win Rate)"
-        elif down_wr > up_wr:
-            suggestion = "⚠️ Downtrend performing better historically"
-        else:
-            suggestion = "⚖️ Both trends have similar performance"
+    # Your custom decision message
+    base_msg = "Can be buy in uptrend or Downtrend of the Market"
 
-        message = (
-            f"📊 {up['stock']}\n"
-            + format_table("UPTREND", up)
-            + format_table("DOWNTREND", down)
-            + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
-            + f"{suggestion}\n"
-            + format_fundamental(fundamental)
-        )
+    if up_wr > down_wr:
+        better_msg = "But better to buy in Uptrend market as Uptrend win ratio is better then downtrend"
+    elif down_wr > up_wr:
+        better_msg = "But better to trade in Downtrend as it is giving better win ratio"
+    else:
+        better_msg = "Both trends have similar win ratio"
+
+    message = (
+        f"📊 {up['stock']}\n"
+        + format_table("UPTREND", up)
+        + format_table("DOWNTREND", down)
+        + f"\n📢 {base_msg}\n"
+        + f"{better_msg}\n"
+        + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
+        + format_fundamental(fundamental)
+    )
 
     elif up:
         message = (
