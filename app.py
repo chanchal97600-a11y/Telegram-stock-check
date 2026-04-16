@@ -270,16 +270,17 @@ def webhook():
         text = text.strip()
         
                 # DAILY LIMIT CHECK
-        if not check_daily_limit(chat_id):
-send_message(chat_id,
-    f"🚫 Daily limit reached.\n\n"
-    f"⏳ Try again tomorrow or upgrade to Premium.\n\n"
-    f"💰 Premium: ₹200 for 6 months\n"
-    f"📲 UPI: 90122xxxx@ybl\n\n"
-    f"📩 After payment, send screenshot + your Chat ID to @backteststock\n\n"
-    f"🆔 Your Chat ID: {chat_id}"
-)
-            return "ok"
+if not check_daily_limit(chat_id):
+    send_message(chat_id,
+        f"🚫 Daily limit reached.\n\n"
+        f"⏳ Try again tomorrow or upgrade to Premium.\n\n"
+        f"💰 Premium: ₹200 for 6 months\n"
+        f"📲 UPI: 90122xxxx@ybl\n\n"
+        f"📩 After payment, send screenshot + your Chat ID to @backteststock\n\n"
+        f"🆔 Your Chat ID: {chat_id}"
+    )
+    return "ok"
+        
 
         # START CHECK
         if text.upper() == "/START":
