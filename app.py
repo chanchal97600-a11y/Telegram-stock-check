@@ -210,7 +210,7 @@ def webhook():
                 print("Join error:", e)
                 return "ok"
 
-            send_message(chat_id, "👋 Welcome! Send stock name.")
+            send_message(chat_id, "👋 Welcome! Here you can find the Historic backtest Analysis of more than 2000 Stocks.")
             return "ok"
 
         # SAVE USER
