@@ -178,31 +178,20 @@ def check_daily_limit(chat_id):
         sheet = file.worksheet("Users")
         data = sheet.get_all_records()
 
-    except Exception as e:
-        print("ERROR:", e)
         today = datetime.now().strftime("%Y-%m-%d")
 
         for i, row in enumerate(data, start=2):
             if str(row["Chat ID"]) == str(chat_id):
 
                 # LIMIT FROM SHEET (YOU CONTROL THIS)
-               limit = row.get("Count", 10)
-try:
-    limit = int(limit)
-except:
-    limit = 10
+                limit = row.get("Count", 10)
+                try:
+                    limit = int(limit)
+                except:
+                    limit = 10
 
-used = int(row.get("Used", 0))
-last_date = str(row.get("Date", ""))
-
-# RESET IF LIMIT CHANGED OR NEW DAY
-stored_limit = row.get("StoredLimit", limit)
-
-if last_date != today or int(stored_limit) != limit:
-    sheet.update_cell(i, 5, 0)        # reset Used
-    sheet.update_cell(i, 6, today)    # update date
-    sheet.update_cell(i, 7, limit)    # store new limit
-    used = 0
+                used = int(row.get("Used", 0))
+                last_date = str(row.get("Date", ""))
 
                 # RESET ONLY USAGE DAILY
                 if last_date != today:
@@ -225,7 +214,7 @@ if last_date != today or int(stored_limit) != limit:
             "",
             10,   # default limit
             1,    # used
-            today
+            datetime.now().strftime("%Y-%m-%d")
         ])
         return True
 
