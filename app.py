@@ -168,6 +168,11 @@ def format_table(title, data):
 
 from datetime import datetime
 
+# ALL YOUR FUNCTIONS ABOVE
+
+
+from datetime import datetime
+
 def check_daily_limit(chat_id):
     try:
         sheet = file.worksheet("Users")
@@ -178,21 +183,28 @@ def check_daily_limit(chat_id):
         for i, row in enumerate(data, start=2):
             if str(row["Chat ID"]) == str(chat_id):
 
+                # LIMIT FROM SHEET (YOU CONTROL THIS)
+                limit = row.get("Count", 10)
+                try:
+                    limit = int(limit)
+                except:
+                    limit = 10
+
+                used = int(row.get("Used", 0))
                 last_date = str(row.get("Date", ""))
-                count = int(row.get("Count", 0))
 
-                # NEW DAY RESET
+                # RESET ONLY USAGE DAILY
                 if last_date != today:
-                    sheet.update_cell(i, 4, 1)   # Count
-                    sheet.update_cell(i, 5, today)
-                    return True
+                    sheet.update_cell(i, 5, 0)      # Used reset
+                    sheet.update_cell(i, 6, today)  # update date
+                    used = 0
 
-                # LIMIT CHECK
-                if count >= 10:
+                # CHECK LIMIT
+                if used >= limit:
                     return False
 
-                # INCREASE COUNT
-                sheet.update_cell(i, 4, count + 1)
+                # INCREASE USAGE
+                sheet.update_cell(i, 5, used + 1)
                 return True
 
         # NEW USER
@@ -200,7 +212,8 @@ def check_daily_limit(chat_id):
             str(chat_id),
             "",
             "",
-            1,
+            10,   # default limit
+            1,    # used
             today
         ])
         return True
