@@ -95,7 +95,6 @@ def get_fundamental_data(symbol):
             "sector": info.get("sector"),
             "ev_ebitda": info.get("enterpriseToEbitda")
         }
-
     except Exception as e:
         print("Yahoo error:", e)
         return None
@@ -143,7 +142,6 @@ def get_stock_data(sheet, text):
                     "timeout": row[4],
                     "winrate": row[6]
                 }
-
         return None
 
     except Exception as e:
@@ -244,38 +242,20 @@ def webhook():
     up = get_stock_data(uptrend_sheet, text)
     down = get_stock_data(downtrend_sheet, text)
 
-  if up and down:
-    message = (
-        f"📊 {up['stock']}\n"
-        + format_fundamental(fundamental)
-        + format_table("BULLISH 🟢", up)
-        + format_table("BEARISH 🔴", down)
-    )
-
-elif up:
-    message = (
-        f"📊 {up['stock']}\n"
-        + format_fundamental(fundamental)
-        + format_table("BULLISH 🟢", up)
-    )
-
-elif down:
-    message = (
-        f"📊 {down['stock']}\n"
-        + format_fundamental(fundamental)
-        + format_table("BEARISH 🔴", down)
-    )
-
-else:
-    message = (
-        "⚠️ Stock not found\n\n"
-        "👉 Try: RELIANCE, TCS, INFY"
-    )
+    if up:
+        message = f"📊 {up['stock']}" + format_fundamental(fundamental)
+    elif down:
+        message = f"📊 {down['stock']}" + format_fundamental(fundamental)
     else:
-        message = " Hello!! Enter a valid NSE stock to get:📊 Backtest Performance  📈 Buy & Target Levels 💡 Market Analysis  Example: RELIANCE, TCS, INFY "
+        message = (
+            "Hello!! Enter a valid NSE stock to get:\n"
+            "📊 Backtest Performance\n"
+            "📈 Buy & Target Levels\n"
+            "💡 Market Analysis\n"
+            "Example: RELIANCE, TCS, INFY"
+        )
 
     send_message(chat_id, message)
-
     return "ok"
 
 # =========================
