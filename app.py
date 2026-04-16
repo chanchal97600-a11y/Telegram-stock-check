@@ -244,10 +244,33 @@ def webhook():
     up = get_stock_data(uptrend_sheet, text)
     down = get_stock_data(downtrend_sheet, text)
 
-    if up:
-        message = f"📊 {up['stock']}" + format_fundamental(fundamental)
-    elif down:
-        message = f"📊 {down['stock']}" + format_fundamental(fundamental)
+    if up and down:
+    message = (
+        f"📊 {up['stock']}\n"
+        + format_fundamental(fundamental)
+        + format_table("BULLISH 🟢", up)
+        + format_table("BEARISH 🔴", down)
+    )
+
+elif up:
+    message = (
+        f"📊 {up['stock']}\n"
+        + format_fundamental(fundamental)
+        + format_table("BULLISH 🟢", up)
+    )
+
+elif down:
+    message = (
+        f"📊 {down['stock']}\n"
+        + format_fundamental(fundamental)
+        + format_table("BEARISH 🔴", down)
+    )
+
+else:
+    message = (
+        "⚠️ Stock not found\n\n"
+        "👉 Try: RELIANCE, TCS, INFY"
+    )
     else:
         message = " Hello!! Enter a valid NSE stock to get:📊 Backtest Performance  📈 Buy & Target Levels 💡 Market Analysis  Example: RELIANCE, TCS, INFY "
 
