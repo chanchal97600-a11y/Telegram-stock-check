@@ -166,6 +166,48 @@ def format_table(title, data):
         f"{data['trades']} | {data['wins']} | {data['losses']} | {data['timeout']} | {data['winrate']}\n"
     )
 
+from datetime import datetime
+
+def check_daily_limit(chat_id):
+    try:
+        sheet = file.worksheet("Users")
+        data = sheet.get_all_records()
+
+        today = datetime.now().strftime("%Y-%m-%d")
+
+        for i, row in enumerate(data, start=2):
+            if str(row["Chat ID"]) == str(chat_id):
+
+                last_date = str(row.get("Date", ""))
+                count = int(row.get("Count", 0))
+
+                # NEW DAY RESET
+                if last_date != today:
+                    sheet.update_cell(i, 4, 1)   # Count
+                    sheet.update_cell(i, 5, today)
+                    return True
+
+                # LIMIT CHECK
+                if count >= 10:
+                    return False
+
+                # INCREASE COUNT
+                sheet.update_cell(i, 4, count + 1)
+                return True
+
+        # NEW USER
+        sheet.append_row([
+            str(chat_id),
+            "",
+            "",
+            1,
+            today
+        ])
+        return True
+
+    except Exception as e:
+        print("LIMIT ERROR:", e)
+        return True
 # =========================
 # WEBHOOK
 # =========================
