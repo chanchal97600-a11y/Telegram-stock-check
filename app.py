@@ -306,7 +306,7 @@ def webhook():
 
     else:
         message = (
-            f"❌ Stock '{text}' not found in sheet\n"
+            f"Hello there Please type a valid Symbol of Indian Stock Exchnage"
             + format_fundamental(fundamental)
         )
 
