@@ -273,11 +273,12 @@ def webhook():
         if not check_daily_limit(chat_id):
             send_message(chat_id,
     f"🚫 Daily limit reached.\n\n"
-    f"You can try again tomorrow, or upgrade to the Premium plan.\n\n"
+    f"⏳ Try again tomorrow or upgrade to Premium.\n\n"
     f"💰 Premium: ₹200 for 6 months\n"
     f"📲 UPI: 90122xxxx@ybl\n\n"
-    f"After payment, send the screenshot along with your Chat ID to @Backteststock\n\n"
-    f"🆔 Your Chat ID: {chat_id}" @Backteststock . ")
+    f"📩 After payment, send screenshot + your Chat ID to @backteststock\n\n"
+    f"🆔 Your Chat ID: {chat_id}"
+)
             return "ok"
 
         # START CHECK
