@@ -175,18 +175,19 @@ from datetime import datetime
 def check_daily_limit(chat_id):
     try:
         sheet = file.worksheet("Users")
-        data = sheet.get_all_records()
+        data = sheet.get_all_values()
 
         today = datetime.now().strftime("%Y-%m-%d")
 
-        for i, row in enumerate(data, start=2):
+        for i, row in enumerate(data[1:], start=2):
 
-            if str(row.get("Chat ID")) == str(chat_id):
+            # Column A = Chat ID
+            if str(row[0]) == str(chat_id):
 
                 # =========================
                 # LIMIT (Column D)
                 # =========================
-                limit = row.get("Count", "")
+                limit = row[3] if len(row) > 3 else ""
                 try:
                     limit = int(limit) if str(limit).strip() != "" else 10
                 except:
@@ -195,7 +196,7 @@ def check_daily_limit(chat_id):
                 # =========================
                 # USED (Column E)
                 # =========================
-                used = row.get("Used", 0)
+                used = row[4] if len(row) > 4 else 0
                 try:
                     used = int(used)
                 except:
@@ -204,7 +205,7 @@ def check_daily_limit(chat_id):
                 # =========================
                 # DATE (Column F)
                 # =========================
-                last_date = str(row.get("Date", ""))
+                last_date = row[5] if len(row) > 5 else ""
 
                 # =========================
                 # RESET DAILY
@@ -230,12 +231,12 @@ def check_daily_limit(chat_id):
         # NEW USER ENTRY
         # =========================
         sheet.append_row([
-            str(chat_id),   # Chat ID
-            "",             # Username
-            "",             # Name
-            "",             # Count (empty = default 10)
-            1,              # Used
-            today           # Date
+            str(chat_id),  # A
+            "",            # B
+            "",            # C
+            "",            # D (limit)
+            1,             # E (used)
+            today          # F (date)
         ])
 
         return True
