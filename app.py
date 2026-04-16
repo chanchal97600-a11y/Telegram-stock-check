@@ -170,7 +170,6 @@ from datetime import datetime
 
 # ALL YOUR FUNCTIONS ABOVE
 
-
 from datetime import datetime
 
 def check_daily_limit(chat_id):
@@ -181,41 +180,64 @@ def check_daily_limit(chat_id):
         today = datetime.now().strftime("%Y-%m-%d")
 
         for i, row in enumerate(data, start=2):
-            if str(row["Chat ID"]) == str(chat_id):
 
-                # LIMIT FROM SHEET (YOU CONTROL THIS)
-                limit = row.get("Count", 10)
+            if str(row.get("Chat ID")) == str(chat_id):
+
+                # =========================
+                # LIMIT (Column D)
+                # =========================
+                limit = row.get("Count", "")
                 try:
-                    limit = int(limit)
+                    limit = int(limit) if str(limit).strip() != "" else 10
                 except:
                     limit = 10
 
-                used = int(row.get("Used", 0))
-                last_date = str(row.get("Date", ""))
-
-                # RESET ONLY USAGE DAILY
-                if last_date != today:
-                    sheet.update_cell(i, 5, 0)      # Used reset
-                    sheet.update_cell(i, 6, today)  # update date
+                # =========================
+                # USED (Column E)
+                # =========================
+                used = row.get("Used", 0)
+                try:
+                    used = int(used)
+                except:
                     used = 0
 
-                # CHECK LIMIT
+                # =========================
+                # DATE (Column F)
+                # =========================
+                last_date = str(row.get("Date", ""))
+
+                # =========================
+                # RESET DAILY
+                # =========================
+                if last_date != today:
+                    sheet.update_cell(i, 5, 0)      # Used reset
+                    sheet.update_cell(i, 6, today)  # Date update
+                    used = 0
+
+                # =========================
+                # LIMIT CHECK
+                # =========================
                 if used >= limit:
                     return False
 
-                # INCREASE USAGE
+                # =========================
+                # INCREASE COUNT
+                # =========================
                 sheet.update_cell(i, 5, used + 1)
                 return True
 
-        # NEW USER
+        # =========================
+        # NEW USER ENTRY
+        # =========================
         sheet.append_row([
-            str(chat_id),
-            "",
-            "",
-            10,   # default limit
-            1,    # used
-            datetime.now().strftime("%Y-%m-%d")
+            str(chat_id),   # Chat ID
+            "",             # Username
+            "",             # Name
+            "",             # Count (empty = default 10)
+            1,              # Used
+            today           # Date
         ])
+
         return True
 
     except Exception as e:
