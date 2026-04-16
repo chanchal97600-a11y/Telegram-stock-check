@@ -184,14 +184,23 @@ def check_daily_limit(chat_id):
             if str(row["Chat ID"]) == str(chat_id):
 
                 # LIMIT FROM SHEET (YOU CONTROL THIS)
-                limit = row.get("Count", 10)
-                try:
-                    limit = int(limit)
-                except:
-                    limit = 10
+               limit = row.get("Count", 10)
+try:
+    limit = int(limit)
+except:
+    limit = 10
 
-                used = int(row.get("Used", 0))
-                last_date = str(row.get("Date", ""))
+used = int(row.get("Used", 0))
+last_date = str(row.get("Date", ""))
+
+# RESET IF LIMIT CHANGED OR NEW DAY
+stored_limit = row.get("StoredLimit", limit)
+
+if last_date != today or int(stored_limit) != limit:
+    sheet.update_cell(i, 5, 0)        # reset Used
+    sheet.update_cell(i, 6, today)    # update date
+    sheet.update_cell(i, 7, limit)    # store new limit
+    used = 0
 
                 # RESET ONLY USAGE DAILY
                 if last_date != today:
