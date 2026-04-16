@@ -177,7 +177,24 @@ def webhook():
     if not text:
         return "ok"
 
-    text = text.upper().strip()
+    text = text.strip()
+
+    # =========================
+    # HANDLE DM / START COMMAND
+    # =========================
+    if text.upper() == "/START":
+        welcome_msg = (
+            "👋 Welcome to Stock Bot\n\n"
+            "Send me any stock name (e.g. RELIANCE, TCS, INFY)\n"
+            "I will show:\n"
+            "✅ Backtest performance\n"
+            "📊 Fundamentals\n"
+            "📈 Bullish vs Bearish analysis"
+        )
+        send_message(chat_id, welcome_msg)
+        return "ok"
+
+    text = text.upper()
 
     # 🔥 FETCH FUNDAMENTALS
     fundamental = get_fundamental_data(text)
