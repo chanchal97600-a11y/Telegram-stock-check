@@ -244,7 +244,7 @@ def webhook():
     up = get_stock_data(uptrend_sheet, text)
     down = get_stock_data(downtrend_sheet, text)
 
-    if up and down:
+  if up and down:
     message = (
         f"📊 {up['stock']}\n"
         + format_fundamental(fundamental)
