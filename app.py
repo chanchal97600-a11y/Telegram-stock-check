@@ -271,7 +271,7 @@ def webhook():
         
                 # DAILY LIMIT CHECK
         if not check_daily_limit(chat_id):
-            send_message(chat_id, "🚫 Daily limit reached. Try again tomorrow, or you can get paid version in only 200Rs. for 6 Months give UPI payment on 90122xxxx@ybl then share your Screenshot with your Chat ID details on @Backteststocks . ")
+            send_message(chat_id, "🚫 Daily limit reached. Try again tomorrow, or you can get paid version in only 200Rs. for 6 Months give UPI payment on 90122xxxx@ybl then share your Screenshot with your Chat ID details on @Backteststock . ")
             return "ok"
 
         # START CHECK
