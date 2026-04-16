@@ -249,12 +249,7 @@ def webhook():
     elif down:
         message = f"📊 {down['stock']}" + format_fundamental(fundamental)
     else:
-        message = " Hello!! Enter a valid NSE stock to get:
-📊 Backtest Performance  
-📈 Buy & Target Levels  
-💡 Market Analysis  
-
-Example: RELIANCE, TCS, INFY "
+        message = " Hello!! Enter a valid NSE stock to get:📊 Backtest Performance  📈 Buy & Target Levels 💡 Market Analysis  Example: RELIANCE, TCS, INFY "
 
     send_message(chat_id, message)
 
