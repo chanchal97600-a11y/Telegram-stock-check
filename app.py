@@ -71,12 +71,14 @@ def get_fundamental_data(symbol):
             "market_cap": info.get("marketCap"),
             "pe": info.get("trailingPE"),
             "eps": info.get("trailingEps"),
-            "sector": info.get("sector")
+            "sector": info.get("sector"),
+            "ev_ebitda": info.get("enterpriseToEbitda")
         }
 
     except Exception as e:
         print("Yahoo error:", e)
         return None
+
 
 def format_fundamental(data):
     if not data:
@@ -88,11 +90,18 @@ def format_fundamental(data):
     else:
         mc = "N/A"
 
+    ev_ebitda = data.get("ev_ebitda")
+    if ev_ebitda:
+        ev_ebitda = round(ev_ebitda, 2)
+    else:
+        ev_ebitda = "N/A"
+
     return (
         "\n📊 FUNDAMENTALS\n"
         f"Market Cap: {mc}\n"
         f"PE Ratio: {data.get('pe', 'N/A')}\n"
         f"EPS: {data.get('eps', 'N/A')}\n"
+        f"EV/EBITDA: {ev_ebitda}\n"
         f"Sector: {data.get('sector', 'N/A')}\n"
     )
 
