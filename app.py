@@ -306,7 +306,7 @@ def webhook():
 
     else:
         message = (
-            f"Hello there Please type a valid Symbol of Indian Stock Exchnage. Then you will get Historic win of that stock considering MACD, RSI undervalued"
+            f"Hello there !!! Please type a valid Symbol of Indian Stock Exchnage. Then you will get Historic data of that stock from the beginnin till date considering MACD, RSI undervalued & "
             + format_fundamental(fundamental)
         )
 
