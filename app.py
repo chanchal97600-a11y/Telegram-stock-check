@@ -44,6 +44,23 @@ print("UP SHEET:", uptrend_sheet.title, uptrend_sheet.id)
 print("DOWN SHEET:", downtrend_sheet.title, downtrend_sheet.id)
 
 # =========================
+# SAVE USER DATA (NO DUPLICATE)
+# =========================
+def save_user(chat_id, username=None, name=None):
+    try:
+        sheet = file.worksheet("Users")
+        existing = sheet.col_values(1)
+
+        if str(chat_id) not in existing:
+            sheet.append_row([
+                str(chat_id),
+                username or "",
+                name or ""
+            ])
+    except Exception as e:
+        print("User save error:", e)
+
+# =========================
 # TELEGRAM SEND FUNCTION
 # =========================
 def send_message(chat_id, text):
@@ -180,7 +197,7 @@ def webhook():
     text = text.strip()
 
     # =========================
-    # HANDLE DM / START COMMAND
+    # HANDLE START
     # =========================
     if text.upper() == "/START":
         welcome_msg = (
@@ -193,6 +210,18 @@ def webhook():
         )
         send_message(chat_id, welcome_msg)
         return "ok"
+
+    # =========================
+    # SAVE USER (NO DUPLICATE)
+    # =========================
+    username = None
+    name = None
+
+    if "message" in data:
+        username = data["message"]["chat"].get("username")
+        name = data["message"]["chat"].get("first_name")
+
+    save_user(chat_id, username, name)
 
     text = text.upper()
 
