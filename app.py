@@ -242,18 +242,18 @@ def webhook():
         return "ok"
 
     # =========================
-    # SAVE USER (NO DUPLICATE)
-    # =========================
-    username = None
-    name = None
+# SAVE USER (NO DUPLICATE)
+# =========================
+username = None
+name = None
 
-    if "message" in data:
-        username = data["message"]["from"].get("username")
-name = data["message"]["from"].get("first_name")
-chat_id = data["message"]["from"].get("id")
-        name = data["message"]["chat"].get("first_name")
+if "message" in data:
+    user = data["message"].get("from", {})   # ✅ correct source
+    chat_id = user.get("id")                 # ✅ correct chat_id
+    username = user.get("username")          # ✅ username
+    name = user.get("first_name")            # ✅ name
 
-    save_user(chat_id, username, name)
+save_user(chat_id, username, name)
 
     text = text.upper()
 
