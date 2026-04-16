@@ -220,7 +220,7 @@ def webhook():
         return "ok"
 
     # =========================
-    # SAVE USER (FIXED)
+    # SAVE USER
     # =========================
     username = None
     name = None
@@ -234,7 +234,7 @@ def webhook():
     save_user(chat_id, username, name)
 
     # =========================
-    # MAIN LOGIC
+    # MAIN LOGIC (UPDATED)
     # =========================
     text = text.upper()
     fundamental = get_fundamental_data(text)
@@ -242,10 +242,42 @@ def webhook():
     up = get_stock_data(uptrend_sheet, text)
     down = get_stock_data(downtrend_sheet, text)
 
-    if up:
-        message = f"📊 {up['stock']}" + format_fundamental(fundamental)
+    if up and down:
+        up_wr = safe_winrate(up["winrate"])
+        down_wr = safe_winrate(down["winrate"])
+
+        if up_wr > down_wr:
+            suggestion = "✅ Better to BUY in UPTREND (Higher Win Rate)"
+        elif down_wr > up_wr:
+            suggestion = "⚠️ Downtrend performing better historically"
+        else:
+            suggestion = "⚖️ Both trends have similar performance"
+
+        message = (
+            f"📊 {up['stock']}\n"
+            + format_table("UPTREND", up)
+            + format_table("DOWNTREND", down)
+            + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
+            + f"{suggestion}\n"
+            + format_fundamental(fundamental)
+        )
+
+    elif up:
+        message = (
+            f"📊 {up['stock']}\n"
+            + format_table("UPTREND", up)
+            + "\n✅ Only UPTREND data available — Prefer BUY setups\n"
+            + format_fundamental(fundamental)
+        )
+
     elif down:
-        message = f"📊 {down['stock']}" + format_fundamental(fundamental)
+        message = (
+            f"📊 {down['stock']}\n"
+            + format_table("DOWNTREND", down)
+            + "\n⚠️ Only DOWNTREND data available — Risky for buying\n"
+            + format_fundamental(fundamental)
+        )
+
     else:
         message = (
             "Hello!! Enter a valid NSE stock to get:\n"
