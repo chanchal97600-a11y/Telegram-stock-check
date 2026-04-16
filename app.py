@@ -248,7 +248,9 @@ def webhook():
     name = None
 
     if "message" in data:
-        username = data["message"]["chat"].get("username")
+        username = data["message"]["from"].get("username")
+name = data["message"]["from"].get("first_name")
+chat_id = data["message"]["from"].get("id")
         name = data["message"]["chat"].get("first_name")
 
     save_user(chat_id, username, name)
