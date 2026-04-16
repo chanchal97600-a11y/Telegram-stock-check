@@ -269,7 +269,7 @@ def webhook():
 
         text = text.strip()
         
-          # DAILY LIMIT CHECK
+# DAILY LIMIT CHECK
 if not check_daily_limit(chat_id):
     send_message(chat_id,
         f"🚫 Daily limit reached.\n\n"
