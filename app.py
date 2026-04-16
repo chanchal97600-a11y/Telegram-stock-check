@@ -190,6 +190,11 @@ def webhook():
             return "ok"
 
         text = text.strip()
+        
+                # DAILY LIMIT CHECK
+        if not check_daily_limit(chat_id):
+            send_message(chat_id, "🚫 Daily limit reached (10 questions). Try again tomorrow.")
+            return "ok"
 
         # START CHECK
         if text.upper() == "/START":
