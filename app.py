@@ -179,7 +179,7 @@ def check_daily_limit(chat_id):
         data = sheet.get_all_records()
 
     except Exception as e:
-    print("ERROR:", e)
+        print("ERROR:", e)
         today = datetime.now().strftime("%Y-%m-%d")
 
         for i, row in enumerate(data, start=2):
