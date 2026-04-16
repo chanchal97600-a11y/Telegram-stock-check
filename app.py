@@ -8,8 +8,6 @@ from flask import Flask, request
 # TELEGRAM CONFIG
 # =========================
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-
-# ✅ ADDED (from Railway variable)
 TELEGRAM_CHANNEL = os.environ.get("TELEGRAM_CHANNEL")
 
 if not TELEGRAM_TOKEN:
@@ -108,16 +106,10 @@ def format_fundamental(data):
         return "\n⚠️ Fundamental data not available\n"
 
     mc = data.get("market_cap")
-    if mc:
-        mc = f"{mc/1e7:.2f} Cr"
-    else:
-        mc = "N/A"
+    mc = f"{mc/1e7:.2f} Cr" if mc else "N/A"
 
     ev_ebitda = data.get("ev_ebitda")
-    if ev_ebitda:
-        ev_ebitda = round(ev_ebitda, 2)
-    else:
-        ev_ebitda = "N/A"
+    ev_ebitda = round(ev_ebitda, 2) if ev_ebitda else "N/A"
 
     return (
         "\n📊 FUNDAMENTALS\n"
@@ -183,7 +175,6 @@ def format_table(title, data):
 @app.route("/", methods=["POST"])
 def webhook():
     data = request.get_json()
-
     print("UPDATE:", data)
 
     text = None
@@ -206,7 +197,6 @@ def webhook():
     # HANDLE START (WITH SUBSCRIBE)
     # =========================
     if text.upper() == "/START":
-
         try:
             url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChatMember"
             res = requests.get(url, params={
@@ -218,99 +208,48 @@ def webhook():
 
             if status not in ["member", "administrator", "creator"]:
                 join_msg = (
-                    "🚫 Please join our channel first to use this bot\n\n"
-                    f"👉 https://t.me/{TELEGRAM_CHANNEL.replace('@','')}\n\n"
-                    "After joining, press /start again"
+                    "🚫 Please join our channel first\n\n"
+                    f"👉 https://t.me/{TELEGRAM_CHANNEL.replace('@','')}"
                 )
                 send_message(chat_id, join_msg)
                 return "ok"
 
         except Exception as e:
             print("Join check error:", e)
-            send_message(chat_id, "⚠️ Error checking subscription. Try again.")
             return "ok"
 
-        welcome_msg = (
-            "👋 Welcome to Stock Bot\n\n"
-            "Send me any stock name (e.g. RELIANCE, TCS, INFY)\n"
-            "I will show:\n"
-            "✅ Backtest performance\n"
-            "📊 Fundamentals\n"
-            "📈 Bullish vs Bearish analysis"
-        )
-        send_message(chat_id, welcome_msg)
+        send_message(chat_id, "👋 Welcome! Send stock name.")
         return "ok"
 
     # =========================
-# SAVE USER (NO DUPLICATE)
-# =========================
-username = None
-name = None
+    # SAVE USER (FIXED)
+    # =========================
+    username = None
+    name = None
 
-if "message" in data:
-    user = data["message"].get("from", {})   # ✅ correct source
-    chat_id = user.get("id")                 # ✅ correct chat_id
-    username = user.get("username")          # ✅ username
-    name = user.get("first_name")            # ✅ name
+    if "message" in data:
+        user = data["message"].get("from", {})
+        chat_id = user.get("id")
+        username = user.get("username")
+        name = user.get("first_name")
 
-save_user(chat_id, username, name)
+    save_user(chat_id, username, name)
 
+    # =========================
+    # MAIN LOGIC
+    # =========================
     text = text.upper()
-
     fundamental = get_fundamental_data(text)
 
     up = get_stock_data(uptrend_sheet, text)
     down = get_stock_data(downtrend_sheet, text)
 
-    if up and down:
-        up_wr = safe_winrate(up["winrate"])
-        down_wr = safe_winrate(down["winrate"])
-
-        if up_wr > down_wr:
-            better = "BULLISH MARKET 🟢"
-            mood = "😃 Strong bullish performance!"
-        elif down_wr > up_wr:
-            better = "BEARISH MARKET 🔴"
-            mood = "😎 Better in bearish conditions!"
-        else:
-            better = "BOTH MARKETS ⚖️"
-            mood = "🙂 Balanced performance"
-
-        message = (
-            f"📊 Stock: {up['stock']}\n"
-            + format_fundamental(fundamental) +
-            "\n✅ Available in BOTH markets\n\n"
-            f"🚀 Better in: {better}\n\n"
-            f"📈 Bullish Win Rate: {up['winrate']}\n"
-            f"📉 Bearish Win Rate: {down['winrate']}\n\n"
-            f"{mood}\n"
-            "━━━━━━━━━━━━━━━"
-            f"{format_table('BULLISH 🟢', up)}"
-            "━━━━━━━━━━━━━━━"
-            f"{format_table('BEARISH 🔴', down)}"
-        )
-
-    elif up:
-        message = (
-            f"📊 Stock: {up['stock']}\n"
-            + format_fundamental(fundamental) +
-            "\n🟢 Only in Bullish Market\n"
-            f"{format_table('BULLISH 🟢', up)}"
-        )
-
+    if up:
+        message = f"📊 {up['stock']}" + format_fundamental(fundamental)
     elif down:
-        message = (
-            f"📊 Stock: {down['stock']}\n"
-            + format_fundamental(fundamental) +
-            "\n🔴 Only in Bearish Market\n"
-            f"{format_table('BEARISH 🔴', down)}"
-        )
-
+        message = f"📊 {down['stock']}" + format_fundamental(fundamental)
     else:
-        message = (
-            f"Hello there !!! Please type a valid Symbol of Indian Stock Exchnage. Then you will get Historic data of that stock from the beginnin till date considering MACD, RSI undervalued & "
-            + format_fundamental(fundamental)
-        )
+        message = "❌ Stock not found"
 
     send_message(chat_id, message)
 
