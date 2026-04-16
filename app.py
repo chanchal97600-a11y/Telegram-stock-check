@@ -99,7 +99,6 @@ def get_fundamental_data(symbol):
         print("Yahoo error:", e)
         return None
 
-
 def format_fundamental(data):
     if not data:
         return "\n⚠️ Fundamental data not available\n"
@@ -191,9 +190,7 @@ def webhook():
 
     text = text.strip()
 
-    # =========================
-    # HANDLE START (WITH SUBSCRIBE)
-    # =========================
+    # START CHECK
     if text.upper() == "/START":
         try:
             url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChatMember"
@@ -205,105 +202,65 @@ def webhook():
             status = res.get("result", {}).get("status")
 
             if status not in ["member", "administrator", "creator"]:
-                join_msg = (
-                    "🚫 Please join our channel first\n\n"
-                    f"👉 https://t.me/{TELEGRAM_CHANNEL.replace('@','')}"
-                )
-                send_message(chat_id, join_msg)
+                send_message(chat_id, "🚫 Please join channel first")
                 return "ok"
 
-        except Exception as e:
-            print("Join check error:", e)
+        except:
             return "ok"
 
         send_message(chat_id, "👋 Welcome! Send stock name.")
         return "ok"
 
-    # =========================
     # SAVE USER
-    # =========================
-    username = None
-    name = None
-
     if "message" in data:
         user = data["message"].get("from", {})
         chat_id = user.get("id")
-        username = user.get("username")
-        name = user.get("first_name")
+        save_user(chat_id, user.get("username"), user.get("first_name"))
 
-    save_user(chat_id, username, name)
-
-    # =========================
-    # MAIN LOGIC (UPDATED)
-    # =========================
+    # MAIN LOGIC
     text = text.upper()
     fundamental = get_fundamental_data(text)
 
     up = get_stock_data(uptrend_sheet, text)
     down = get_stock_data(downtrend_sheet, text)
 
-   if up and down:
-    up_wr = safe_winrate(up["winrate"])
-    down_wr = safe_winrate(down["winrate"])
+    if up and down:
+        up_wr = safe_winrate(up["winrate"])
+        down_wr = safe_winrate(down["winrate"])
 
-    # Your custom decision message
-    base_msg = "Can be buy in uptrend or Downtrend of the Market"
+        base_msg = "Can be buy in uptrend or Downtrend of the Market"
 
-    if up_wr > down_wr:
-        better_msg = "But better to buy in Uptrend market as Uptrend win ratio is better then downtrend"
-    elif down_wr > up_wr:
-        better_msg = "But better to trade in Downtrend as it is giving better win ratio"
-    else:
-        better_msg = "Both trends have similar win ratio"
+        if up_wr > down_wr:
+            better_msg = "But better to buy in Uptrend market as Uptrend win ratio is better then downtrend"
+        elif down_wr > up_wr:
+            better_msg = "But better to trade in Downtrend as it is giving better win ratio"
+        else:
+            better_msg = "Both trends have similar win ratio"
 
-    message = (
-        f"📊 {up['stock']}\n"
-        + format_table("UPTREND", up)
-        + format_table("DOWNTREND", down)
-        + f"\n📢 {base_msg}\n"
-        + f"{better_msg}\n"
-        + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
-        + format_fundamental(fundamental)
-    )
-
-    elif up:
         message = (
             f"📊 {up['stock']}\n"
             + format_table("UPTREND", up)
-            + "\n✅ Only UPTREND data available — Prefer BUY setups\n"
+            + format_table("DOWNTREND", down)
+            + f"\n📢 {base_msg}\n{better_msg}\n"
+            + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
             + format_fundamental(fundamental)
         )
+
+    elif up:
+        message = f"📊 {up['stock']}" + format_table("UPTREND", up) + format_fundamental(fundamental)
 
     elif down:
-        message = (
-            f"📊 {down['stock']}\n"
-            + format_table("DOWNTREND", down)
-            + "\n⚠️ Only DOWNTREND data available — Risky for buying\n"
-            + format_fundamental(fundamental)
-        )
+        message = f"📊 {down['stock']}" + format_table("DOWNTREND", down) + format_fundamental(fundamental)
 
     else:
-        message = (
-            "Hello!! Enter a valid NSE stock to get:\n"
-            "📊 Backtest Performance\n"
-            "📈 Buy & Target Levels\n"
-            "💡 Market Analysis\n"
-            "Example: RELIANCE, TCS, INFY"
-        )
+        message = "Send valid NSE stock like RELIANCE, TCS"
 
     send_message(chat_id, message)
     return "ok"
 
-# =========================
-# HOME
-# =========================
 @app.route("/", methods=["GET"])
 def home():
     return "Bot Running ✅"
 
-# =========================
-# RUN
-# =========================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=8000)
