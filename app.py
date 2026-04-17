@@ -296,12 +296,12 @@ def webhook():
             up_wr = safe_winrate(up["winrate"])
             down_wr = safe_winrate(down["winrate"])
 
-            base_msg = "Can be buy in uptrend or Downtrend of the Market"
+            base_msg = "The above findings are derived from historical data analysis"
 
             if up_wr > down_wr:
-                better_msg = "But better to buy in Uptrend market as Uptrend win ratio is better then downtrend"
+                better_msg = "TCS can be traded in any market trend. However, better results are observed during Uptrend phases"
             elif down_wr > up_wr:
-                better_msg = "But better to trade in Downtrend as it is giving better win ratio"
+                better_msg = "TCS can be traded in any market trend. However, better results are observed during downtrend phases"
             else:
                 better_msg = "Both trends have similar win ratio"
 
