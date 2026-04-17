@@ -234,18 +234,18 @@ def webhook():
         text = None
         chat_id = None
 
-# ❌ OUTSIDE try → causes SyntaxError
-if "channel_post" in data:
-    return "ok"
+        # ❌ OUTSIDE try → causes SyntaxError
+        if "channel_post" in data:
+          return "ok"
    
 
-# ✅ ONLY handle normal messages (private / group)
-elif "message" in data:
-    text = data["message"].get("text")
-    chat_id = data["message"]["chat"]["id"]
+        # ✅ ONLY handle normal messages (private / group)
+        elif "message" in data:
+            text = data["message"].get("text")
+            chat_id = data["message"]["chat"]["id"]
 
-if not text:
-    return "ok"
+        if not text:
+            return "ok"
         elif "message" in data:
             text = data["message"].get("text")
             chat_id = data["message"]["chat"]["id"]
