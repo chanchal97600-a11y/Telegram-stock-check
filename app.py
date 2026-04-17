@@ -321,7 +321,7 @@ def webhook():
             message = f"📊 {down['stock']}" + format_table("DOWNTREND", down) + format_fundamental(fundamental)
 
         else:
-            message = "Send valid NSE stock like RELIANCE, TCS"
+            message = "Sorry!! You Just typed a wrong stock symbol. Try again"
 
         send_message(chat_id, message)
         return "ok"
