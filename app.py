@@ -303,7 +303,7 @@ def webhook():
             elif down_wr > up_wr:
                 better_msg = "TCS can be traded in any market trend. However, better results are observed during downtrend phases"
             else:
-                better_msg = "Both trends have similar win ratio"
+                better_msg = "TCS can be traded in any market trend. However, Same results are observed in both Phases"
 
             message = (
                 f"📊 {up['stock']}\n"
