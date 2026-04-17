@@ -231,11 +231,20 @@ def webhook():
 
         text = None
         chat_id = None
+text = None
+chat_id = None
 
-        if "channel_post" in data:
-            text = data["channel_post"].get("text")
-            chat_id = data["channel_post"]["chat"]["id"]
+# ❌ IGNORE CHANNEL COMPLETELY
+if "channel_post" in data:
+    return "ok"
 
+# ✅ ONLY handle normal messages (private / group)
+elif "message" in data:
+    text = data["message"].get("text")
+    chat_id = data["message"]["chat"]["id"]
+
+if not text:
+    return "ok"
         elif "message" in data:
             text = data["message"].get("text")
             chat_id = data["message"]["chat"]["id"]
