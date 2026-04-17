@@ -226,13 +226,13 @@ def check_daily_limit(chat_id):
 @app.route("/", methods=["POST"])
 def webhook():
     try:
-    data = request.get_json()
-    print("UPDATE:", data)
+        data = request.get_json()
+        print("UPDATE:", data)
 
-    text = None
-    chat_id = None
-    text = None
-    chat_id = None
+        text = None
+        chat_id = None
+        text = None
+        chat_id = None
 
 # ❌ OUTSIDE try → causes SyntaxError
 if "channel_post" in data:
