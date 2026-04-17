@@ -231,8 +231,8 @@ def webhook():
 
         text = None
         chat_id = None
-text = None
-chat_id = None
+        text = None
+        chat_id = None
 
 # ❌ IGNORE CHANNEL COMPLETELY
 if "channel_post" in data:
