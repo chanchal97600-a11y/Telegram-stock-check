@@ -183,50 +183,63 @@ def format_table(title, data):
 # BAR CHART (NEW)
 # =========================
 def create_bar_chart(stock, up_wr, down_wr):
+    import numpy as np
+
     labels = ["Uptrend", "Downtrend"]
     values = [up_wr, down_wr]
 
-    plt.figure(figsize=(6, 4), dpi=150)
+    plt.figure(figsize=(7, 4.5), dpi=160)
     ax = plt.gca()
 
-    # COLORS (THIS WAS MISSING)
-    colors = ["#2ecc71", "#e74c3c"]  # green, red
+    # Dark professional background (like trading dashboards)
+    fig = plt.gcf()
+    fig.patch.set_facecolor("#0f172a")
+    ax.set_facecolor("#0f172a")
 
-    bars = ax.bar(labels, values, width=0.5, color=colors, edgecolor="black", linewidth=0.8)
+    # Colors (gradient style feel)
+    colors = ["#00ff88", "#ff4d4d"]
 
-    # Title styling
-    ax.set_title(f"{stock} Winrate Comparison", fontsize=14, fontweight='bold')
+    bars = ax.bar(labels, values, width=0.55, color=colors)
 
-    ax.set_ylabel("Win %", fontsize=12)
+    # Title
+    ax.set_title(
+        f"{stock} Winrate Comparison",
+        fontsize=15,
+        fontweight="bold",
+        color="white",
+        pad=15
+    )
+
+    # Axes styling
+    ax.set_ylabel("Win %", color="white")
+    ax.set_ylim(0, 100)
+
+    ax.tick_params(colors="white")
+
+    # Remove borders
+    for spine in ax.spines.values():
+        spine.set_visible(False)
 
     # Grid (subtle)
-    ax.grid(axis='y', linestyle='--', alpha=0.25)
+    ax.grid(axis="y", linestyle="--", alpha=0.15, color="white")
 
-    # Value labels on bars
+    # Value labels (glow style)
     for bar in bars:
-        height = bar.get_height()
+        h = bar.get_height()
         ax.text(
-            bar.get_x() + bar.get_width()/2,
-            height + 1,
-            f"{height:.1f}%",
-            ha='center',
-            fontsize=11,
-            fontweight='bold'
+            bar.get_x() + bar.get_width() / 2,
+            h + 2,
+            f"{h:.1f}%",
+            ha="center",
+            fontsize=12,
+            fontweight="bold",
+            color="white"
         )
 
-    # Clean frame
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-
-    # Make background white (important for Telegram visibility)
-    ax.set_facecolor("white")
-    plt.gcf().patch.set_facecolor("white")
-
-    plt.ylim(0, 100)  # fixed scale for winrate clarity
+    plt.tight_layout()
 
     file_path = f"/tmp/{stock}_bar.png"
-    plt.tight_layout()
-    plt.savefig(file_path)
+    plt.savefig(file_path, facecolor=fig.get_facecolor())
     plt.close()
 
     return file_path
@@ -310,7 +323,7 @@ def webhook():
             )
 
         else:
-            send_message(chat_id, "Wrong stock")
+            send_message(chat_id, "Send valid NSE stock like RELIANCE, TCS")
 
         return "ok"
 
