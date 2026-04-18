@@ -5,8 +5,8 @@ import yfinance as yf
 from flask import Flask, request
 from datetime import datetime
 import matplotlib
+matplotlib.use('Agg')
 
-matplotlib.use('Agg')  # IMPORTANT for Railway (no GUI)
 import matplotlib.pyplot as plt
 
 # =========================
@@ -17,6 +17,7 @@ TELEGRAM_CHANNEL = os.environ.get("TELEGRAM_CHANNEL")
 
 if not TELEGRAM_TOKEN:
     raise Exception("TELEGRAM_TOKEN not set")
+
 if not TELEGRAM_CHANNEL:
     raise Exception("TELEGRAM_CHANNEL not set")
 
@@ -47,8 +48,6 @@ file = gc.open("PARABOLIC SAR")
 uptrend_sheet = file.worksheet("Uptrend")
 downtrend_sheet = file.worksheet("Downtrend")
 
-print("UP SHEET:", uptrend_sheet.title)
-print("DOWN SHEET:", downtrend_sheet.title)
 
 # =========================
 # SAVE USER DATA
@@ -57,17 +56,15 @@ def save_user(chat_id, username=None, name=None):
     try:
         sheet = file.worksheet("Users")
         existing = sheet.col_values(1)
+
         if str(chat_id) not in existing:
-            sheet.append_row([
-                str(chat_id),
-                username or "",
-                name or ""
-            ])
+            sheet.append_row([str(chat_id), username or "", name or ""])
     except Exception as e:
         print("User save error:", e)
 
+
 # =========================
-# TELEGRAM SEND FUNCTION
+# TELEGRAM FUNCTIONS
 # =========================
 def send_message(chat_id, text):
     try:
@@ -76,11 +73,26 @@ def send_message(chat_id, text):
     except Exception as e:
         print("Telegram error:", e)
 
+
+def send_photo(chat_id, photo_path, caption=None):
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
+        with open(photo_path, "rb") as photo:
+            requests.post(
+                url,
+                data={"chat_id": chat_id, "caption": caption or ""},
+                files={"photo": photo}
+            )
+    except Exception as e:
+        print("Photo error:", e)
+
+
 # =========================
-# NORMALIZE FUNCTION
+# NORMALIZE
 # =========================
 def normalize(text):
     return str(text).strip().upper().replace(".NS", "")
+
 
 # =========================
 # FUNDAMENTAL DATA
@@ -121,8 +133,9 @@ def format_fundamental(data):
         f"Sector: {data.get('sector', 'N/A')}\n"
     )
 
+
 # =========================
-# STOCK SEARCH FUNCTION
+# STOCK SEARCH
 # =========================
 def get_stock_data(sheet, text):
     try:
@@ -133,9 +146,7 @@ def get_stock_data(sheet, text):
             if not row:
                 continue
 
-            stock_name = normalize(row[0])
-
-            if text == stock_name:
+            if text == normalize(row[0]):
                 return {
                     "stock": row[0],
                     "trades": row[1],
@@ -149,17 +160,16 @@ def get_stock_data(sheet, text):
         print("Sheet error:", e)
         return None
 
-# =========================
-# SAFE WINRATE
-# =========================
+
 def safe_winrate(x):
     try:
         return float(str(x).replace("%", "").strip())
     except:
         return 0.0
 
+
 # =========================
-# FORMAT MESSAGE
+# TABLE FORMAT
 # =========================
 def format_table(title, data):
     return (
@@ -168,68 +178,25 @@ def format_table(title, data):
         f"{data['trades']} | {data['wins']} | {data['losses']} | {data['timeout']} | {data['winrate']}\n"
     )
 
-# =========================
-# DAILY LIMIT FUNCTION
-# =========================
-def check_daily_limit(chat_id):
-    try:
-        sheet = file.worksheet("Users")
-        data = sheet.get_all_values()
-        today = datetime.now().strftime("%Y-%m-%d")
-
-        for i, row in enumerate(data[1:], start=2):
-            if str(row[0]) == str(chat_id):
-
-                limit = row[3] if len(row) > 3 else ""
-
-                try:
-                    limit = int(limit) if str(limit).strip() != "" else 10
-                except:
-                    limit = 10
-
-                used = row[4] if len(row) > 4 else 0
-
-                try:
-                    used = int(used)
-                except:
-                    used = 0
-
-                last_date = row[5] if len(row) > 5 else ""
-
-                if last_date != today:
-                    sheet.update_cell(i, 5, 0)
-                    sheet.update_cell(i, 6, today)
-                    used = 0
-
-                if used >= limit:
-                    return False
-
-                sheet.update_cell(i, 5, used + 1)
-                return True
-
-        sheet.append_row([str(chat_id), "", "", "", 1, today])
-        return True
-
-    except Exception as e:
-        print("LIMIT ERROR:", e)
-        return True
 
 # =========================
-# Pie Chart Function
+# BAR CHART (NEW)
 # =========================
-def create_pie_chart(stock, up_wr, down_wr):
-    labels = ['Uptrend', 'Downtrend']
-    sizes = [up_wr, down_wr]
+def create_bar_chart(stock, up_wr, down_wr):
+    labels = ["Uptrend", "Downtrend"]
+    values = [up_wr, down_wr]
 
     plt.figure()
-    plt.pie(sizes, labels=labels, autopct='%1.1f%%')
+    plt.bar(labels, values)
     plt.title(f"{stock} Winrate Comparison")
+    plt.ylabel("Win %")
 
-    file_path = f"/tmp/{stock}_pie.png"
+    file_path = f"/tmp/{stock}_bar.png"
     plt.savefig(file_path)
     plt.close()
 
     return file_path
+
 
 # =========================
 # WEBHOOK
@@ -240,120 +207,75 @@ def webhook():
         data = request.get_json()
         print("UPDATE:", data)
 
-        text = None
-        chat_id = None
-
         if "channel_post" in data:
             return "ok"
 
-        elif "message" in data:
-            text = data["message"].get("text")
-            chat_id = data["message"]["chat"]["id"]
+        if "message" not in data:
+            return "ok"
+
+        text = data["message"].get("text")
+        chat_id = data["message"]["chat"]["id"]
 
         if not text:
             return "ok"
 
         text = text.strip()
 
-        # DAILY LIMIT CHECK
-        if not check_daily_limit(chat_id):
-            send_message(
-                chat_id,
-                f"🚫 Daily limit reached.\n\n"
-                f"⏳ Try again tomorrow or upgrade to learn more.\n\n"
-                f"💰 Just for ₹200 (ek pizza kam kha lunga 🍕 lakin Analysis jarur karunga)\n"
-                f"📲 pay securely via Razorpay: https://razorpay.me/@kumar9709?amount=ExQs%2Fv%2FDDS71hestyV8B7g%3D%3D\n\n"
-                f"📩 After payment, send screenshot + your Chat ID to @backteststock\n\n"
-                f"🆔 Your Chat ID: {chat_id}"
-            )
-            return "ok"
-
-        # START CHECK
-        if text.upper() == "/START":
-            try:
-                url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChatMember"
-                res = requests.get(url, params={
-                    "chat_id": TELEGRAM_CHANNEL,
-                    "user_id": chat_id
-                }).json()
-
-                status = res.get("result", {}).get("status")
-
-                if status not in ["member", "administrator", "creator"]:
-                    send_message(chat_id, "🚫 Please join channel first")
-                    return "ok"
-
-            except Exception as e:
-                print("Join error:", e)
-                return "ok"
-
-            send_message(
-                chat_id,
-                "👋 Welcome! Here you can find the Historic backtest Analysis of more than 2000 Stocks, just type a stock symbol and get the details."
-            )
-            return "ok"
-
         # SAVE USER
-        if "message" in data:
-            user = data["message"].get("from", {})
-            chat_id = user.get("id")
-            save_user(chat_id, user.get("username"), user.get("first_name"))
+        user = data["message"].get("from", {})
+        save_user(chat_id, user.get("username"), user.get("first_name"))
 
-        # MAIN LOGIC
-        text = text.upper()
-
+        # FUNDAMENTAL
         fundamental = get_fundamental_data(text)
+
+        # STOCK DATA
         up = get_stock_data(uptrend_sheet, text)
         down = get_stock_data(downtrend_sheet, text)
 
+        # MESSAGE BUILD
         if up and down:
             up_wr = safe_winrate(up["winrate"])
             down_wr = safe_winrate(down["winrate"])
 
-            base_msg = "The above findings are derived from historical data analysis"
-
-            if up_wr > down_wr:
-                better_msg = "TCS can be traded in any market trend. However, better results are observed during Uptrend phases"
-            elif down_wr > up_wr:
-                better_msg = "TCS can be traded in any market trend. However, better results are observed during downtrend phases"
-            else:
-                better_msg = "TCS can be traded in any market trend. However, Same results are observed in both Phases"
-
             message = (
-                f"📊 {up['stock']}\n"
+                f"📊 {up['stock']}"
                 + format_table("UPTREND", up)
                 + format_table("DOWNTREND", down)
-                + f"\n📢 {base_msg}\n{better_msg}\n"
-                + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
                 + format_fundamental(fundamental)
             )
 
+            try:
+                chart_path = create_bar_chart(up["stock"], up_wr, down_wr)
+                send_photo(chat_id, chart_path, message)
+            except:
+                send_message(chat_id, message)
+
         elif up:
-            message = f"📊 {up['stock']}" + format_table("UPTREND", up) + format_fundamental(fundamental)
+            send_message(chat_id,
+                f"📊 {up['stock']}" +
+                format_table("UPTREND", up) +
+                format_fundamental(fundamental)
+            )
 
         elif down:
-            message = f"📊 {down['stock']}" + format_table("DOWNTREND", down) + format_fundamental(fundamental)
+            send_message(chat_id,
+                f"📊 {down['stock']}" +
+                format_table("DOWNTREND", down) +
+                format_fundamental(fundamental)
+            )
 
         else:
-            message = "Sorry!! You Just typed a wrong stock symbol. Try again"
+            send_message(chat_id, "Wrong stock")
 
-        send_message(chat_id, message)
         return "ok"
 
     except Exception as e:
-        print("FULL ERROR:", e)
+        print("ERROR:", e)
         return "error"
 
-# =========================
-# HOME
-# =========================
-@app.route("/", methods=["GET"])
-def home():
-    return "Bot Running ✅"
 
 # =========================
 # RUN
 # =========================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    app.run(host="0.0.0.0", port=port)
+    app.run()
