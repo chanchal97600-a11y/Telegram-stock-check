@@ -64,6 +64,53 @@ def save_user(chat_id, username=None, name=None):
 
 
 # =========================
+# 🔴 DAILY LIMIT FUNCTION (ADDED)
+# =========================
+def check_daily_limit(chat_id):
+    try:
+        sheet = file.worksheet("Users")
+        data = sheet.get_all_values()
+        today = datetime.now().strftime("%Y-%m-%d")
+
+        for i, row in enumerate(data[1:], start=2):
+            if str(row[0]) == str(chat_id):
+
+                limit = row[3] if len(row) > 3 else ""
+
+                try:
+                    limit = int(limit) if str(limit).strip() != "" else 10
+                except:
+                    limit = 10
+
+                used = row[4] if len(row) > 4 else 0
+
+                try:
+                    used = int(used)
+                except:
+                    used = 0
+
+                last_date = row[5] if len(row) > 5 else ""
+
+                if last_date != today:
+                    sheet.update_cell(i, 5, 0)
+                    sheet.update_cell(i, 6, today)
+                    used = 0
+
+                if used >= limit:
+                    return False
+
+                sheet.update_cell(i, 5, used + 1)
+                return True
+
+        sheet.append_row([str(chat_id), "", "", "", 1, today])
+        return True
+
+    except Exception as e:
+        print("LIMIT ERROR:", e)
+        return True
+
+
+# =========================
 # TELEGRAM FUNCTIONS
 # =========================
 def send_message(chat_id, text):
@@ -180,7 +227,7 @@ def format_table(title, data):
 
 
 # =========================
-# BAR CHART (NEW)
+# BAR CHART
 # =========================
 def create_bar_chart(stock, up_wr, down_wr):
     import numpy as np
@@ -194,49 +241,28 @@ def create_bar_chart(stock, up_wr, down_wr):
 
     fig, ax = plt.subplots(figsize=(2.1, 5.5), dpi=400)
 
-    # =========================
-    # BACKGROUND (light gradient style)
-    # =========================
     fig.patch.set_facecolor("#aeb5bf")
     ax.set_facecolor("#aeb5bf")
 
-    # =========================
-    # 3D STYLE COLORS (gradient feel)
-    # =========================
     colors = ["#00A6FF", "#005B96"]
 
-    # =========================
-    # MAIN BARS
-    # =========================
     bars = ax.bar(x, values, width=0.45, color=colors, edgecolor="none")
 
-    # =========================
-    # 3D SHADOW EFFECT
-    # =========================
     for bar in bars:
         bar.set_path_effects([
             pe.SimplePatchShadow(offset=(3, -3), alpha=0.5),
             pe.Normal()
         ])
 
-    # =========================
-    # FAKE DEPTH LAYER (behind bars)
-    # =========================
     ax.bar(x + 0.05, values, width=0.45,
            color="#add9ed", alpha=0.4, zorder=0)
 
-    # =========================
-    # TEXT STYLE
-    # =========================
-    ax.set_title(f"{stock} Winrate Comparison",
-                 fontsize=13, fontweight="bold")
+    ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold")
 
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
-
     ax.set_ylabel("Win %")
 
-    # value labels
     for bar in bars:
         h = bar.get_height()
         ax.text(bar.get_x() + bar.get_width()/2,
@@ -245,9 +271,6 @@ def create_bar_chart(stock, up_wr, down_wr):
                 ha="center",
                 fontweight="bold")
 
-    # =========================
-    # CLEAN STYLE
-    # =========================
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
@@ -259,6 +282,7 @@ def create_bar_chart(stock, up_wr, down_wr):
     plt.close()
 
     return file_path
+
 
 # =========================
 # WEBHOOK
@@ -287,6 +311,11 @@ def webhook():
         user = data["message"].get("from", {})
         save_user(chat_id, user.get("username"), user.get("first_name"))
 
+        # 🔴 DAILY LIMIT CHECK (ADDED HERE)
+        if not check_daily_limit(chat_id):
+            send_message(chat_id, "🚫 Daily limit reached. Try again tomorrow, or you can get paid version")
+            return "ok"
+
         # FUNDAMENTAL
         fundamental = get_fundamental_data(text)
 
@@ -294,11 +323,10 @@ def webhook():
         up = get_stock_data(uptrend_sheet, text)
         down = get_stock_data(downtrend_sheet, text)
 
-        # MESSAGE BUILD
         if up and down:
             up_wr = safe_winrate(up["winrate"])
             down_wr = safe_winrate(down["winrate"])
-            
+
             base_msg = "The above findings are derived from historical data analysis"
 
             if up_wr > down_wr:
@@ -307,7 +335,6 @@ def webhook():
                 better_msg = "TCS can be traded in any market trend. However, better results are observed during downtrend phases"
             else:
                 better_msg = "TCS can be traded in any market trend. However, Same results are observed in both Phases"
-
 
             message = (
                 f"📊 {up['stock']}\n"
