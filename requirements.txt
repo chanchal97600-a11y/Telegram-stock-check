@@ -4,3 +4,4 @@ requests
 oauth2client
 gunicorn
 yfinance
+matplotlib
