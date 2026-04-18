@@ -184,60 +184,78 @@ def format_table(title, data):
 # =========================
 def create_bar_chart(stock, up_wr, down_wr):
     import numpy as np
+    import matplotlib.pyplot as plt
+    import matplotlib.patheffects as pe
 
     labels = ["Uptrend", "Downtrend"]
     values = [up_wr, down_wr]
 
-    plt.figure(figsize=(2.2, 5.1), dpi=270)
-    ax = plt.gca()
+    x = np.array([0, 0.8])
 
-    fig = plt.gcf()
-    fig.patch.set_facecolor("#9db4ed")
-    ax.set_facecolor("#9db4ed")
+    fig, ax = plt.subplots(figsize=(5.5, 3.5), dpi=200)
 
-    colors = ["#357D3B", "#E34234"]
+    # =========================
+    # BACKGROUND (light gradient style)
+    # =========================
+    fig.patch.set_facecolor("#f4f6f9")
+    ax.set_facecolor("#f4f6f9")
 
-    # 👇 narrower bars = cleaner look
-    x = np.array([0, 0.7])  # controls gap between bars
+    # =========================
+    # 3D STYLE COLORS (gradient feel)
+    # =========================
+    colors = ["#00A6FF", "#005B96"]
 
-    bars = ax.bar(x, values, width=0.25, color=colors)
+    # =========================
+    # MAIN BARS
+    # =========================
+    bars = ax.bar(x, values, width=0.45, color=colors, edgecolor="none")
+
+    # =========================
+    # 3D SHADOW EFFECT
+    # =========================
+    for bar in bars:
+        bar.set_path_effects([
+            pe.SimplePatchShadow(offset=(3, -3), alpha=0.3),
+            pe.Normal()
+        ])
+
+    # =========================
+    # FAKE DEPTH LAYER (behind bars)
+    # =========================
+    ax.bar(x + 0.05, values, width=0.45,
+           color="#cfd8dc", alpha=0.4, zorder=0)
+
+    # =========================
+    # TEXT STYLE
+    # =========================
+    ax.set_title(f"{stock} Winrate Comparison",
+                 fontsize=13, fontweight="bold")
+
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
 
-    ax.set_title(
-        f"{stock} Winrate Comparison",
-        fontsize=13,
-        fontweight="bold",
-        color="white",
-        pad=10
-    )
+    ax.set_ylabel("Win %")
 
-    ax.set_ylabel("Win %", color="white")
-    ax.set_ylim(0, 100)
-
-    ax.tick_params(colors="white")
-
-    for spine in ax.spines.values():
-        spine.set_visible(False)
-
-    ax.grid(axis="y", linestyle="--", alpha=0.12, color="white")
-
+    # value labels
     for bar in bars:
         h = bar.get_height()
-        ax.text(
-            bar.get_x() + bar.get_width() / 2,
-            h + 1.5,
-            f"{h:.1f}%",
-            ha="center",
-            fontsize=11,
-            fontweight="bold",
-            color="white"
-        )
+        ax.text(bar.get_x() + bar.get_width()/2,
+                h + 1,
+                f"{h:.1f}%",
+                ha="center",
+                fontweight="bold")
 
+    # =========================
+    # CLEAN STYLE
+    # =========================
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    plt.ylim(0, 100)
     plt.tight_layout()
 
     file_path = f"/tmp/{stock}_bar.png"
-    plt.savefig(file_path, facecolor=fig.get_facecolor())
+    plt.savefig(file_path, bbox_inches="tight")
     plt.close()
 
     return file_path
