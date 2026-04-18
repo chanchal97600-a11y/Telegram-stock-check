@@ -188,17 +188,17 @@ def create_bar_chart(stock, up_wr, down_wr):
     labels = ["Uptrend", "Downtrend"]
     values = [up_wr, down_wr]
 
-    plt.figure(figsize=(5.2, 3.6), dpi=160)
+    plt.figure(figsize=(5.2, 3.1), dpi=190)
     ax = plt.gca()
 
     fig = plt.gcf()
     fig.patch.set_facecolor("#0f172a")
     ax.set_facecolor("#0f172a")
 
-    colors = ["#00ff88", "#ff4d4d"]
+    colors = ["#357D3B", "#E34234"]
 
     # 👇 narrower bars = cleaner look
-    bars = ax.bar(labels, values, width=0.30, color=colors)
+    bars = ax.bar(labels, values, width=0.25, color=colors)
 
     ax.set_title(
         f"{stock} Winrate Comparison",
