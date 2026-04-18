@@ -186,17 +186,39 @@ def create_bar_chart(stock, up_wr, down_wr):
     labels = ["Uptrend", "Downtrend"]
     values = [up_wr, down_wr]
 
-    plt.figure()
-    plt.bar(labels, values)
-    plt.title(f"{stock} Winrate Comparison")
-    plt.ylabel("Win %")
+    plt.figure(figsize=(6, 4), dpi=150)
+
+    bars = plt.bar(labels, values, width=0.5)
+
+    # Title and labels
+    plt.title(f"{stock} Winrate Comparison", fontsize=14, fontweight='bold')
+    plt.ylabel("Win %", fontsize=12)
+
+    # Grid for readability
+    plt.grid(axis='y', linestyle='--', alpha=0.3)
+
+    # Add value labels on top of bars
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(
+            bar.get_x() + bar.get_width()/2,
+            height + 1,
+            f"{height:.1f}%",
+            ha='center',
+            fontsize=11,
+            fontweight='bold'
+        )
+
+    # Clean look (remove top/right border)
+    plt.gca().spines['top'].set_visible(False)
+    plt.gca().spines['right'].set_visible(False)
 
     file_path = f"/tmp/{stock}_bar.png"
+    plt.tight_layout()
     plt.savefig(file_path)
     plt.close()
 
     return file_path
-
 
 # =========================
 # WEBHOOK
