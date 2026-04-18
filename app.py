@@ -187,20 +187,25 @@ def create_bar_chart(stock, up_wr, down_wr):
     values = [up_wr, down_wr]
 
     plt.figure(figsize=(6, 4), dpi=150)
+    ax = plt.gca()
 
-    bars = plt.bar(labels, values, width=0.5)
+    # COLORS (THIS WAS MISSING)
+    colors = ["#2ecc71", "#e74c3c"]  # green, red
 
-    # Title and labels
-    plt.title(f"{stock} Winrate Comparison", fontsize=14, fontweight='bold')
-    plt.ylabel("Win %", fontsize=12)
+    bars = ax.bar(labels, values, width=0.5, color=colors, edgecolor="black", linewidth=0.8)
 
-    # Grid for readability
-    plt.grid(axis='y', linestyle='--', alpha=0.3)
+    # Title styling
+    ax.set_title(f"{stock} Winrate Comparison", fontsize=14, fontweight='bold')
 
-    # Add value labels on top of bars
+    ax.set_ylabel("Win %", fontsize=12)
+
+    # Grid (subtle)
+    ax.grid(axis='y', linestyle='--', alpha=0.25)
+
+    # Value labels on bars
     for bar in bars:
         height = bar.get_height()
-        plt.text(
+        ax.text(
             bar.get_x() + bar.get_width()/2,
             height + 1,
             f"{height:.1f}%",
@@ -209,9 +214,15 @@ def create_bar_chart(stock, up_wr, down_wr):
             fontweight='bold'
         )
 
-    # Clean look (remove top/right border)
-    plt.gca().spines['top'].set_visible(False)
-    plt.gca().spines['right'].set_visible(False)
+    # Clean frame
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    # Make background white (important for Telegram visibility)
+    ax.set_facecolor("white")
+    plt.gcf().patch.set_facecolor("white")
+
+    plt.ylim(0, 100)  # fixed scale for winrate clarity
 
     file_path = f"/tmp/{stock}_bar.png"
     plt.tight_layout()
