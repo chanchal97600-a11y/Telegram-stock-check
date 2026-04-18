@@ -313,7 +313,15 @@ def webhook():
 
         # 🔴 DAILY LIMIT CHECK (ADDED HERE)
         if not check_daily_limit(chat_id):
-            send_message(chat_id, "🚫 Daily limit reached. Try again tomorrow, or you can get paid version")
+            send_message(
+                chat_id,
+                f"🚫 Daily limit reached.\n\n"
+                f"⏳ Try again tomorrow or upgrade to learn more.\n\n"
+                f"💰 Just for ₹200 (ek pizza kam kha lunga 🍕 lakin Analysis jarur karunga)\n"
+                f"📲 pay securely via Razorpay: https://razorpay.me/@kumar9709?amount=ExQs%2Fv%2FDDS71hestyV8B7g%3D%3D\n\n"
+                f"📩 After payment, send screenshot + your Chat ID to @backteststock\n\n"
+                f"🆔 Your Chat ID: {chat_id}"
+            )
             return "ok"
 
         # FUNDAMENTAL
