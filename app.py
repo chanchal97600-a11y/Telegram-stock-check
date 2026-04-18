@@ -188,50 +188,44 @@ def create_bar_chart(stock, up_wr, down_wr):
     labels = ["Uptrend", "Downtrend"]
     values = [up_wr, down_wr]
 
-    plt.figure(figsize=(7, 4.5), dpi=160)
+    plt.figure(figsize=(5.2, 3.6), dpi=160)
     ax = plt.gca()
 
-    # Dark professional background (like trading dashboards)
     fig = plt.gcf()
     fig.patch.set_facecolor("#0f172a")
     ax.set_facecolor("#0f172a")
 
-    # Colors (gradient style feel)
     colors = ["#00ff88", "#ff4d4d"]
 
-    bars = ax.bar(labels, values, width=0.55, color=colors)
+    # 👇 narrower bars = cleaner look
+    bars = ax.bar(labels, values, width=0.30, color=colors)
 
-    # Title
     ax.set_title(
         f"{stock} Winrate Comparison",
-        fontsize=15,
+        fontsize=13,
         fontweight="bold",
         color="white",
-        pad=15
+        pad=10
     )
 
-    # Axes styling
     ax.set_ylabel("Win %", color="white")
     ax.set_ylim(0, 100)
 
     ax.tick_params(colors="white")
 
-    # Remove borders
     for spine in ax.spines.values():
         spine.set_visible(False)
 
-    # Grid (subtle)
-    ax.grid(axis="y", linestyle="--", alpha=0.15, color="white")
+    ax.grid(axis="y", linestyle="--", alpha=0.12, color="white")
 
-    # Value labels (glow style)
     for bar in bars:
         h = bar.get_height()
         ax.text(
             bar.get_x() + bar.get_width() / 2,
-            h + 2,
+            h + 1.5,
             f"{h:.1f}%",
             ha="center",
-            fontsize=12,
+            fontsize=11,
             fontweight="bold",
             color="white"
         )
