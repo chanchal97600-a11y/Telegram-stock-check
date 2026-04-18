@@ -192,7 +192,7 @@ def create_bar_chart(stock, up_wr, down_wr):
 
     x = np.array([0, 0.8])
 
-    fig, ax = plt.subplots(figsize=(5.5, 3.5), dpi=200)
+    fig, ax = plt.subplots(figsize=(2.1, 5.5), dpi=400)
 
     # =========================
     # BACKGROUND (light gradient style)
