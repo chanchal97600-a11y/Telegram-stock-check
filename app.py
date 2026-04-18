@@ -303,8 +303,13 @@ def webhook():
         if up and down:
             up_wr = safe_winrate(up["winrate"])
             down_wr = safe_winrate(down["winrate"])
-
-            message = f"📊 {up['stock']}" + format_table("UPTREND", up) + format_table("DOWNTREND", down)
+            message = (
+             f"📊 {up['stock']}\n"
+             + format_table("UPTREND", up)
+             + format_table("DOWNTREND", down)
+             + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
+             + format_fundamental(fundamental)
+             )                     
 
             try:
                 chart_path = create_pie_chart(up['stock'], up_wr, down_wr)
@@ -313,10 +318,20 @@ def webhook():
                 send_message(chat_id, message)
 
         elif up:
-            send_message(chat_id, f"📊 {up['stock']}" + format_table("UPTREND", up))
+            message = (
+                f"📊 {up['stock']}"
+                + format_table("UPTREND", up)
+                + format_fundamental(fundamental)
+            )
+            send_message(chat_id, message)
 
-        elif down:
-            send_message(chat_id, f"📊 {down['stock']}" + format_table("DOWNTREND", down))
+      elif down:
+            message = (
+                f"📊 {down['stock']}"
+                + format_table("DOWNTREND", down)
+                + format_fundamental(fundamental)
+            )
+    send_message(chat_id, message)
 
         else:
             send_message(chat_id, "Wrong stock")
