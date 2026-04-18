@@ -197,8 +197,8 @@ def create_bar_chart(stock, up_wr, down_wr):
     # =========================
     # BACKGROUND (light gradient style)
     # =========================
-    fig.patch.set_facecolor("#f4f6f9")
-    ax.set_facecolor("#f4f6f9")
+    fig.patch.set_facecolor("#aeb5bf")
+    ax.set_facecolor("#aeb5bf")
 
     # =========================
     # 3D STYLE COLORS (gradient feel)
@@ -215,7 +215,7 @@ def create_bar_chart(stock, up_wr, down_wr):
     # =========================
     for bar in bars:
         bar.set_path_effects([
-            pe.SimplePatchShadow(offset=(3, -3), alpha=0.3),
+            pe.SimplePatchShadow(offset=(3, -3), alpha=0.5),
             pe.Normal()
         ])
 
@@ -223,7 +223,7 @@ def create_bar_chart(stock, up_wr, down_wr):
     # FAKE DEPTH LAYER (behind bars)
     # =========================
     ax.bar(x + 0.05, values, width=0.45,
-           color="#cfd8dc", alpha=0.4, zorder=0)
+           color="#add9ed", alpha=0.4, zorder=0)
 
     # =========================
     # TEXT STYLE
