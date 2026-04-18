@@ -4,6 +4,10 @@ import requests
 import yfinance as yf
 from flask import Flask, request
 from datetime import datetime
+import matplotlib
+matplotlib.use('Agg')
+
+import matplotlib.pyplot as plt
 
 # =========================
 # TELEGRAM CONFIG
@@ -45,9 +49,6 @@ file = gc.open("PARABOLIC SAR")
 uptrend_sheet = file.worksheet("Uptrend")
 downtrend_sheet = file.worksheet("Downtrend")
 
-print("UP SHEET:", uptrend_sheet.title)
-print("DOWN SHEET:", downtrend_sheet.title)
-
 # =========================
 # SAVE USER DATA
 # =========================
@@ -74,6 +75,24 @@ def send_message(chat_id, text):
         requests.post(url, json={"chat_id": chat_id, "text": text})
     except Exception as e:
         print("Telegram error:", e)
+
+# =========================
+# TELEGRAM SEND PHOTO
+# =========================
+def send_photo(chat_id, photo_path, caption=None):
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
+        with open(photo_path, "rb") as photo:
+            requests.post(
+                url,
+                data={
+                    "chat_id": chat_id,
+                    "caption": caption or ""
+                },
+                files={"photo": photo}
+            )
+    except Exception as e:
+        print("Photo error:", e)
 
 # =========================
 # NORMALIZE FUNCTION
@@ -221,6 +240,23 @@ def check_daily_limit(chat_id):
         return True
 
 # =========================
+# PIE CHART
+# =========================
+def create_pie_chart(stock, up_wr, down_wr):
+    labels = ['Uptrend', 'Downtrend']
+    sizes = [up_wr, down_wr]
+
+    plt.figure()
+    plt.pie(sizes, labels=labels, autopct='%1.1f%%')
+    plt.title(f"{stock} Winrate Comparison")
+
+    file_path = f"/tmp/{stock}_pie.png"
+    plt.savefig(file_path)
+    plt.close()
+
+    return file_path
+
+# =========================
 # WEBHOOK
 # =========================
 @app.route("/", methods=["POST"])
@@ -229,73 +265,35 @@ def webhook():
         data = request.get_json()
         print("UPDATE:", data)
 
-        text = None
-        chat_id = None
-        text = None
-        chat_id = None
-
-        # ❌ OUTSIDE try → causes SyntaxError
         if "channel_post" in data:
-          return "ok"
-   
-
-        # ✅ ONLY handle normal messages (private / group)
-        elif "message" in data:
-            text = data["message"].get("text")
-            chat_id = data["message"]["chat"]["id"]
-
-        if not text:
             return "ok"
-        elif "message" in data:
-            text = data["message"].get("text")
-            chat_id = data["message"]["chat"]["id"]
+
+        if "message" not in data:
+            return "ok"
+
+        text = data["message"].get("text")
+        chat_id = data["message"]["chat"]["id"]
 
         if not text:
             return "ok"
 
         text = text.strip()
 
-        # DAILY LIMIT CHECK
+        # DAILY LIMIT
         if not check_daily_limit(chat_id):
-            send_message(chat_id,
-                f"🚫 Daily limit reached.\n\n"
-                f"⏳ Try again tomorrow or upgrade to learn more.\n\n"
-                f"💰 Just for ₹200  (ek pizza kam kha lunga 🍕 lakin Analysis jarur karunga)\n"
-                f"📲 pay securely via Razorpay: https://razorpay.me/@kumar9709?amount=ExQs%2Fv%2FDDS71hestyV8B7g%3D%3D\n\n"
-                f"📩 After payment, send screenshot + your Chat ID to @backteststock\n\n"
-                f"🆔 Your Chat ID: {chat_id}"
-            )
+            send_message(chat_id, "🚫 Daily limit reached.")
             return "ok"
 
-        # START CHECK
+        # START
         if text.upper() == "/START":
-            try:
-                url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChatMember"
-                res = requests.get(url, params={
-                    "chat_id": TELEGRAM_CHANNEL,
-                    "user_id": chat_id
-                }).json()
-
-                status = res.get("result", {}).get("status")
-
-                if status not in ["member", "administrator", "creator"]:
-                    send_message(chat_id, "🚫 Please join channel first")
-                    return "ok"
-
-            except Exception as e:
-                print("Join error:", e)
-                return "ok"
-
-            send_message(chat_id, "👋 Welcome! Here you can find the Historic backtest Analysis of more than 2000 Stocks, just type a stock symbol and get the details.")
+            send_message(chat_id, "👋 Welcome!")
             return "ok"
 
         # SAVE USER
-        if "message" in data:
-            user = data["message"].get("from", {})
-            chat_id = user.get("id")
-            save_user(chat_id, user.get("username"), user.get("first_name"))
+        user = data["message"].get("from", {})
+        save_user(chat_id, user.get("username"), user.get("first_name"))
 
-        # MAIN LOGIC
+        # MAIN
         text = text.upper()
         fundamental = get_fundamental_data(text)
 
@@ -306,50 +304,31 @@ def webhook():
             up_wr = safe_winrate(up["winrate"])
             down_wr = safe_winrate(down["winrate"])
 
-            base_msg = "The above findings are derived from historical data analysis"
+            message = f"📊 {up['stock']}" + format_table("UPTREND", up) + format_table("DOWNTREND", down)
 
-            if up_wr > down_wr:
-                better_msg = "TCS can be traded in any market trend. However, better results are observed during Uptrend phases"
-            elif down_wr > up_wr:
-                better_msg = "TCS can be traded in any market trend. However, better results are observed during downtrend phases"
-            else:
-                better_msg = "TCS can be traded in any market trend. However, Same results are observed in both Phases"
-
-            message = (
-                f"📊 {up['stock']}\n"
-                + format_table("UPTREND", up)
-                + format_table("DOWNTREND", down)
-                + f"\n📢 {base_msg}\n{better_msg}\n"
-                + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
-                + format_fundamental(fundamental)
-            )
+            try:
+                chart_path = create_pie_chart(up['stock'], up_wr, down_wr)
+                send_photo(chat_id, chart_path, message)
+            except:
+                send_message(chat_id, message)
 
         elif up:
-            message = f"📊 {up['stock']}" + format_table("UPTREND", up) + format_fundamental(fundamental)
+            send_message(chat_id, f"📊 {up['stock']}" + format_table("UPTREND", up))
 
         elif down:
-            message = f"📊 {down['stock']}" + format_table("DOWNTREND", down) + format_fundamental(fundamental)
+            send_message(chat_id, f"📊 {down['stock']}" + format_table("DOWNTREND", down))
 
         else:
-            message = "Sorry!! You Just typed a wrong stock symbol. Try again"
+            send_message(chat_id, "Wrong stock")
 
-        send_message(chat_id, message)
         return "ok"
 
     except Exception as e:
-        print("FULL ERROR:", e)
+        print("ERROR:", e)
         return "error"
-
-# =========================
-# HOME
-# =========================
-@app.route("/", methods=["GET"])
-def home():
-    return "Bot Running ✅"
 
 # =========================
 # RUN
 # =========================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    app.run(host="0.0.0.0", port=port)
+    app.run()
