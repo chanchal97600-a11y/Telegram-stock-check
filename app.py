@@ -192,8 +192,8 @@ def create_bar_chart(stock, up_wr, down_wr):
     ax = plt.gca()
 
     fig = plt.gcf()
-    fig.patch.set_facecolor("#0f172a")
-    ax.set_facecolor("#0f172a")
+    fig.patch.set_facecolor("#9db4ed")
+    ax.set_facecolor("#9db4ed")
 
     colors = ["#357D3B", "#E34234"]
 
