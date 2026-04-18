@@ -188,7 +188,7 @@ def create_bar_chart(stock, up_wr, down_wr):
     labels = ["Uptrend", "Downtrend"]
     values = [up_wr, down_wr]
 
-    plt.figure(figsize=(5.2, 1.8), dpi=270)
+    plt.figure(figsize=(2.2, 5.1), dpi=270)
     ax = plt.gca()
 
     fig = plt.gcf()
