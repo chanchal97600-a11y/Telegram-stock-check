@@ -6,8 +6,10 @@ from flask import Flask, request
 from datetime import datetime
 import matplotlib
 matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 import matplotlib.pyplot as plt
+import difflib
 
 # =========================
 # TELEGRAM CONFIG
@@ -205,6 +207,17 @@ def format_fundamental(data):
 # =========================
 # STOCK SEARCH
 # =========================
+def suggest_stocks(text, sheet):
+    try:
+        values = sheet.col_values(1)[1:]  # stock names
+        text = normalize(text)
+
+        matches = difflib.get_close_matches(text, values, n=5, cutoff=0.6)
+
+        return matches
+    except Exception as e:
+        print("Suggestion error:", e)
+        return []
 def get_stock_data(sheet, text):
     try:
         values = sheet.get_all_values()
@@ -421,8 +434,23 @@ def webhook():
             )
 
         else:
-            send_message(chat_id, "*Hello* I am *Happy* Chatbot for your channel name *ABC of Stocks*. You just typed a wrong Symbol of indian stock,I will be really happy if you  type a valid stock Symbol")
+    suggestions = suggest_stocks(text, uptrend_sheet)
 
+    if suggestions:
+        suggestion_text = "\n".join([f"➡️ {s}" for s in suggestions])
+
+        send_message(
+            chat_id,
+            f"❌ Stock not found.\n\n"
+            f"🤔 Did you mean:\n{suggestion_text}"
+        )
+    else:
+        send_message(
+            chat_id,
+            "❌ Stock not found.\n\n*Hello* I am *Happy* Chatbot for your channel name *ABC of Stocks*. You just typed a wrong Symbol of indian stock,I will be really happy if you  type a valid stock Symbol")
+")
+
+       
         return "ok"
 
     except Exception as e:
