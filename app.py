@@ -245,39 +245,67 @@ def format_table(title, data):
     )
 
 # =========================
-# BAR CHART
+# BAR CHART (GRADIENT)
 # =========================
 def create_bar_chart(stock, up_wr, down_wr):
     import numpy as np
     import matplotlib.patheffects as pe
+    import matplotlib.pyplot as plt
 
     labels = ["Uptrend", "Downtrend"]
     values = [up_wr, down_wr]
     x = np.array([0, 0.8])
 
     fig, ax = plt.subplots(figsize=(2.1, 3.8), dpi=400)
-    fig.patch.set_facecolor("#aeb5bf")  #BACKGROUNDCOLOR
-    ax.set_facecolor("#aeb5bf")   #BACKGROUNDCOLOR
+    fig.patch.set_facecolor("#aeb5bf")
+    ax.set_facecolor("#aeb5bf")
 
-    colors = ["#00bbff", "#007d96"]
-    bars = ax.bar(x, values, width=0.45, color=colors, edgecolor="none")
+    # Create invisible bars (for clipping gradients)
+    bars = ax.bar(x, values, width=0.45, color="none", edgecolor="none")
 
+    # Gradient function
+    def apply_gradient(ax, bar, color1, color2):
+        x0 = bar.get_x()
+        y0 = 0
+        w = bar.get_width()
+        h = bar.get_height()
+
+        grad = np.linspace(0, 1, 256).reshape(256, 1)
+        grad = np.repeat(grad, 2, axis=1)
+
+        ax.imshow(
+            grad,
+            extent=[x0, x0 + w, y0, y0 + h],
+            origin="lower",
+            aspect="auto",
+            cmap=plt.matplotlib.colors.LinearSegmentedColormap.from_list("", [color1, color2]),
+            clip_path=bar,
+            clip_on=True
+        )
+
+    # Apply GOLD gradient (Uptrend)
+    apply_gradient(ax, bars[0], "#FFD700", "#B8860B")
+
+    # Apply SILVER gradient (Downtrend)
+    apply_gradient(ax, bars[1], "#C0C0C0", "#808080")
+
+    # Shadow effect
     for bar in bars:
         bar.set_path_effects([
-            pe.SimplePatchShadow(offset=(3, -3), alpha=0.5),
+            pe.SimplePatchShadow(offset=(3, -3), alpha=0.4),
             pe.Normal()
         ])
-
-    ax.bar(x + 0.05, values, width=0.55, color="#AE7C2B", alpha=0.8)
 
     ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     ax.set_ylabel("Win %")
 
+    # Value labels
     for bar in bars:
         h = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2, h + 1, f"{h:.1f}%", ha="center", fontweight="bold")
+        ax.text(bar.get_x() + bar.get_width()/2, h + 1,
+                f"{h:.1f}%", ha="center", fontweight="bold")
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
