@@ -448,9 +448,7 @@ def webhook():
         send_message(
             chat_id,
             "❌ Stock not found.\n\n*Hello* I am *Happy* Chatbot for your channel name *ABC of Stocks*. You just typed a wrong Symbol of indian stock,I will be really happy if you  type a valid stock Symbol")
-")
-
-       
+      
         return "ok"
 
     except Exception as e:
