@@ -339,10 +339,7 @@ def handle_start(chat_id):
         return True
 
     send_message(chat_id, "✅ You are verified!\nNow you can use the bot.")
-    return True
-
-    return "ok"   
-      
+    return True  
 
     send_message(
         chat_id,
