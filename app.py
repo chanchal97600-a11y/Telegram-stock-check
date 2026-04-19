@@ -300,7 +300,7 @@ def create_bar_chart(stock, up_wr, down_wr):
     # 🔥 PURE ORANGE (5 shades)
     orange_cmap = LinearSegmentedColormap.from_list(
         "orange",
-        ["#4d1f00", "#cc5200", "#ff8000", "#ffb366", "#ffe0cc"]
+        ["#6F3FA5", "#9B59B6", "#9B59B6", "#9B59B6", "#6F3FA5"]
     )
 
     # 🔥 PURE PINK (5 shades)
