@@ -247,15 +247,15 @@ def format_table(title, data):
 def create_pro_image(stock, up, down, up_wr, down_wr, fundamental):
     import matplotlib.pyplot as plt
 
-    fig = plt.figure(figsize=(6, 10), dpi=300)
+    fig = plt.figure(figsize=(6, 8), dpi=300)  # smaller height (IMPORTANT)
     fig.patch.set_facecolor("#0f172a")
 
     # ================= TITLE =================
-    plt.text(0.5, 0.95, f"{stock} Performance Analysis",
-             ha='center', fontsize=18, color="white", weight='bold')
+    fig.text(0.5, 0.93, f"{stock} Analysis",
+             ha='center', fontsize=16, color="white", weight='bold')
 
     # ================= BAR CHART =================
-    ax = plt.axes([0.15, 0.6, 0.7, 0.25])
+    ax = fig.add_axes([0.15, 0.60, 0.7, 0.25])  # controlled placement
     ax.set_facecolor("#0f172a")
 
     labels = ["Uptrend", "Downtrend"]
@@ -263,41 +263,47 @@ def create_pro_image(stock, up, down, up_wr, down_wr, fundamental):
 
     bars = ax.bar(labels, values)
 
-    for bar in bars:
-        h = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2, h + 1,
-                f"{h:.1f}%", ha='center', color="white", weight='bold')
-
     ax.set_ylim(0, 100)
-    ax.set_ylabel("Win %", color="white")
-    ax.tick_params(colors="white")
 
+    # clean axis
+    ax.tick_params(colors="white")
     for spine in ax.spines.values():
         spine.set_visible(False)
 
-    # ================= TEXT BLOCK =================
-    y = 0.45
+    # value labels
+    for bar in bars:
+        h = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2, h + 2,
+                f"{h:.1f}%", ha='center', color="white", fontsize=10)
 
-    plt.text(0.1, y, "UPTREND", color="#38bdf8", fontsize=14, weight='bold')
-    plt.text(0.1, y-0.05, f"Trades: {up['trades']}  Wins: {up['wins']}  Loss: {up['losses']}", color="white")
+    # ================= DATA TEXT =================
+    fig.text(0.1, 0.45, "UPTREND", color="#38bdf8", fontsize=12, weight='bold')
+    fig.text(0.1, 0.42,
+             f"Trades: {up['trades']} | Wins: {up['wins']} | Loss: {up['losses']}",
+             color="white", fontsize=10)
 
-    plt.text(0.1, y-0.12, "DOWNTREND", color="#60a5fa", fontsize=14, weight='bold')
-    plt.text(0.1, y-0.17, f"Trades: {down['trades']}  Wins: {down['wins']}  Loss: {down['losses']}", color="white")
+    fig.text(0.1, 0.36, "DOWNTREND", color="#60a5fa", fontsize=12, weight='bold')
+    fig.text(0.1, 0.33,
+             f"Trades: {down['trades']} | Wins: {down['wins']} | Loss: {down['losses']}",
+             color="white", fontsize=10)
 
     # ================= FUNDAMENTALS =================
-    plt.text(0.1, 0.2, "FUNDAMENTALS", color="orange", fontsize=14, weight='bold')
+    fig.text(0.1, 0.25, "FUNDAMENTALS", color="orange", fontsize=12, weight='bold')
 
-    plt.text(0.1, 0.15, f"Market Cap: {fundamental.get('market_cap', 'N/A')}", color="white")
-    plt.text(0.1, 0.11, f"PE: {fundamental.get('pe', 'N/A')}", color="white")
-    plt.text(0.1, 0.07, f"EPS: {fundamental.get('eps', 'N/A')}", color="white")
+    fig.text(0.1, 0.22,
+             f"PE: {fundamental.get('pe', 'N/A')} | EPS: {fundamental.get('eps', 'N/A')}",
+             color="white", fontsize=10)
+
+    fig.text(0.1, 0.19,
+             f"EV/EBITDA: {fundamental.get('ev_ebitda', 'N/A')}",
+             color="white", fontsize=10)
 
     # ================= SAVE =================
     file_path = f"/tmp/{stock}_pro.png"
-    plt.savefig(file_path, bbox_inches="tight")
+    plt.savefig(file_path, bbox_inches="tight", facecolor=fig.get_facecolor())
     plt.close()
 
     return file_path
-
 # =========================
 # WEBHOOK
 # =========================
