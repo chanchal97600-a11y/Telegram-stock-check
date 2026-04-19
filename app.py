@@ -144,6 +144,19 @@ def normalize(text):
 # =========================
 # FUNDAMENTAL DATA
 # =========================
+def get_cap_category(market_cap):
+    try:
+        mc_cr = market_cap / 1e7
+
+        if mc_cr >= 20000:
+            return "🟢 Large Cap"
+        elif mc_cr >= 5000:
+            return "🟡 Mid Cap"
+        else:
+            return "🔴 Small Cap"
+    except:
+        return "N/A"
+
 def get_fundamental_data(symbol):
     try:
         ticker = yf.Ticker(symbol + ".NS")
