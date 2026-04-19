@@ -242,10 +242,11 @@ def safe_winrate(x):
 def format_table(title, data):
     return (
         f"\n📊 {title}\n"
-        "Trades | Wins | Loss | Timeout | Win%\n"
-        f"{data['trades']} | {data['wins']} | {data['losses']} | {data['timeout']} | {data['winrate']}\n"
+        "```\n"
+        f"{'Trades':<8} | {'Wins':<6} | {'Loss':<6} | {'Timeout':<8} | {'Win%':<6}\n"
+        f"{data['trades']:<8} | {data['wins']:<6} | {data['losses']:<6} | {data['timeout']:<8} | {data['winrate']:<6}\n"
+        "```"
     )
-
 
 # =========================
 # BAR CHART
