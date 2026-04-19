@@ -391,7 +391,7 @@ def webhook():
                 better_msg = f"{stock_name} can be traded in any market trend. However, same results are observed in both phases"          
 
             message = (
-                f"📊 {up['*stock*']}\n"
+                f"📊 {up['stock']}\n"
                 + format_table("UPTREND", up)
                 + format_table("DOWNTREND", down)
                 + f"\n📢 {base_msg}\n{better_msg}\n"
