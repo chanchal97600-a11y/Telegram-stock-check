@@ -244,13 +244,14 @@ def format_table(title, data):
         f"{data['trades']:<11} | {data['wins']:<7} | {data['losses']:<6} | {data['timeout']:<8} | {data['winrate']:<11}\n"
     )
 
-# CYLINDRICAL METALLIC BAR CHART
-# =========================
+# CYLINDRICAL METALLIC BAR CHART (ROUNDED)
+# =======================================
 def create_bar_chart(stock, up_wr, down_wr):
     import numpy as np
     import matplotlib.pyplot as plt
     import matplotlib.patheffects as pe
     from matplotlib.colors import LinearSegmentedColormap
+    from matplotlib.patches import FancyBboxPatch
 
     labels = ["Uptrend", "Downtrend"]
     values = [up_wr, down_wr]
@@ -261,7 +262,20 @@ def create_bar_chart(stock, up_wr, down_wr):
     ax.set_facecolor("black")
 
     bar_width = 0.45
-    bars = ax.bar(x, values, width=bar_width, color="none", edgecolor="none")
+
+    # --- Create Rounded Bars ---
+    bars = []
+    for xi, val in zip(x, values):
+        bar = FancyBboxPatch(
+            (xi - bar_width/2, 0),
+            bar_width,
+            val,
+            boxstyle="round,pad=0,rounding_size=0.12",  # 🔥 controls roundness
+            linewidth=0,
+            facecolor="none"
+        )
+        ax.add_patch(bar)
+        bars.append(bar)
 
     gold_cmap = LinearSegmentedColormap.from_list(
         "gold",
@@ -274,9 +288,8 @@ def create_bar_chart(stock, up_wr, down_wr):
     )
 
     def apply_cylindrical_gradient(ax, bar, cmap):
-        x0 = bar.get_x()
-        w = bar.get_width()
-        h = bar.get_height()
+        x0, y0 = bar.get_x(), bar.get_y()
+        w, h = bar.get_width(), bar.get_height()
 
         grad = np.linspace(0, 1, 256).reshape(1, 256)
         grad = np.repeat(grad, 256, axis=0)
