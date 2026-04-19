@@ -163,7 +163,7 @@ def get_fundamental_data(symbol):
 
 def format_fundamental(data):
     if not data:
-        return "\n⚠️ Fundamental data not available\n"
+        return "\n⚠️ *Fundamental data not available*. Please try a diffrent Stock Symbol.\n"
 
     mc = data.get("market_cap")
     mc = f"{mc/1e7:.2f} Cr" if mc else "N/A"
