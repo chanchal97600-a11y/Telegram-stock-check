@@ -316,30 +316,39 @@ def webhook():
         #START
         #=================================
 
-
         if text.upper() == "/START":
+            try:
+                url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChatMember"
+                res = requests.get(url, params={
+                    "chat_id": TELEGRAM_CHANNEL,
+                    "user_id": chat_id
+                }).json()
 
-    try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChatMember"
-        res = requests.get(url, params={
-            "chat_id": TELEGRAM_CHANNEL,
-            "user_id": chat_id
-        }).json()
+                status = res.get("result", {}).get("status")
 
-        status = res.get("result", {}).get("status")
-
-        if status not in ["member", "administrator", "creator"]:
-            send_message(
-                chat_id,
-                "👋 *Welcome!*\n\n"
-                "⚠️ You must join our channel first to use this bot.\n\n"
-                f"👉 Join here: {TELEGRAM_CHANNEL}"
-            )
-            return "ok"   # 🔴 IMPORTANT STOP HERE
+                if status not in ["member", "administrator", "creator"]:
+                    send_message(
+                        chat_id,
+                        "👋 *Welcome!*\n\n"
+                        "⚠️ You must join our channel first to use this bot.\n\n"
+                        f"👉 Join here: {TELEGRAM_CHANNEL}"
+                    )
+                    return "ok"   # 🔴 IMPORTANT STOP HERE
 
     except Exception as e:
         print("Join error:", e)
         return "ok"
+
+    send_message(
+        chat_id,
+        "✅ You are verified!\nNow you can use the bot."
+    )
+    return "ok"
+
+
+
+    
+      
 
     send_message(
         chat_id,
