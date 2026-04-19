@@ -5,6 +5,7 @@ import yfinance as yf
 from flask import Flask, request
 from datetime import datetime
 import matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import difflib
@@ -55,7 +56,6 @@ def save_user(chat_id, username=None, name=None):
     try:
         sheet = file.worksheet("Users")
         existing = sheet.col_values(1)
-
         if str(chat_id) not in existing:
             sheet.append_row([str(chat_id), username or "", name or ""])
     except Exception as e:
@@ -156,7 +156,6 @@ def get_fundamental_data(symbol):
     try:
         ticker = yf.Ticker(symbol + ".NS")
         info = ticker.info
-
         return {
             "market_cap": info.get("marketCap"),
             "pe": info.get("trailingPE"),
@@ -170,10 +169,9 @@ def get_fundamental_data(symbol):
 
 def format_fundamental(data):
     if not data:
-        return "\n⚠️ *Fundamental data not available*\n"
+        return "\n⚠️ *Fundamental data not available*. Please try a different Stock Symbol.\n"
 
     mc_raw = data.get("market_cap")
-
     if mc_raw:
         mc_cr = mc_raw / 1e7
         mc = f"{mc_cr:.2f} Cr"
@@ -203,7 +201,8 @@ def suggest_stocks(text, sheet):
         values = sheet.col_values(1)[1:]
         text = normalize(text)
         return difflib.get_close_matches(text, values, n=5, cutoff=0.6)
-    except:
+    except Exception as e:
+        print("Suggestion error:", e)
         return []
 
 def get_stock_data(sheet, text):
@@ -212,7 +211,9 @@ def get_stock_data(sheet, text):
         text = normalize(text)
 
         for row in values[1:]:
-            if row and text == normalize(row[0]):
+            if not row:
+                continue
+            if text == normalize(row[0]):
                 return {
                     "stock": row[0],
                     "trades": row[1],
@@ -222,7 +223,9 @@ def get_stock_data(sheet, text):
                     "winrate": row[6]
                 }
         return None
-    except:
+
+    except Exception as e:
+        print("Sheet error:", e)
         return None
 
 def safe_winrate(x):
@@ -246,38 +249,47 @@ def format_table(title, data):
 # =========================
 def create_bar_chart(stock, up_wr, down_wr):
     import numpy as np
+    import matplotlib.patheffects as pe
 
     labels = ["Uptrend", "Downtrend"]
     values = [up_wr, down_wr]
     x = np.array([0, 0.8])
 
     fig, ax = plt.subplots(figsize=(2.1, 4.8), dpi=400)
+    fig.patch.set_facecolor("#aeb5bf")
+    ax.set_facecolor("#aeb5bf")
 
-    bars = ax.bar(x, values, width=0.45)
+    colors = ["#00A6FF", "#005B96"]
+    bars = ax.bar(x, values, width=0.45, color=colors, edgecolor="none")
 
-    ax.set_title(f"{stock} Winrate Comparison")
+    for bar in bars:
+        bar.set_path_effects([
+            pe.SimplePatchShadow(offset=(3, -3), alpha=0.5),
+            pe.Normal()
+        ])
+
+    ax.bar(x + 0.05, values, width=0.45, color="#add9ed", alpha=0.4)
+
+    ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     ax.set_ylabel("Win %")
 
     for bar in bars:
         h = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2, h + 1, f"{h:.1f}%", ha="center")
+        ax.text(bar.get_x() + bar.get_width()/2, h + 1, f"{h:.1f}%", ha="center", fontweight="bold")
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
 
     plt.ylim(0, 100)
     plt.tight_layout()
 
     file_path = f"/tmp/{stock}_bar.png"
-    plt.savefig(file_path)
+    plt.savefig(file_path, bbox_inches="tight")
     plt.close()
 
     return file_path
-
-# =========================
-# START HANDLER
-# =========================
-def handle_start(chat_id):
-    send_message(chat_id, "✅ Bot started successfully!")
 
 # =========================
 # WEBHOOK
@@ -286,6 +298,10 @@ def handle_start(chat_id):
 def webhook():
     try:
         data = request.get_json()
+        print("UPDATE:", data)
+
+        if "channel_post" in data:
+            return "ok"
 
         if "message" not in data:
             return "ok"
@@ -302,25 +318,101 @@ def webhook():
             handle_start(chat_id)
             return "ok"
 
-        save_user(chat_id)
+        user = data["message"].get("from", {})
+        save_user(chat_id, user.get("username"), user.get("first_name"))
 
         if not check_daily_limit(chat_id):
-            send_message(chat_id, "🚫 Daily limit reached")
+            send_message(
+                chat_id,
+                f"🚫 Daily limit reached.\n\n"
+                f"⏳ Try again tomorrow or upgrade to learn more.\n\n"
+                f"💰 Just for ₹200 (ek pizza kam kha lunga 🍕 lakin Analysis jarur karunga)\n"
+                f"📲 pay securely via Razorpay: https://razorpay.me/@kumar9709?amount=ExQs%2Fv%2FDDS71hestyV8B7g%3D%3D\n\n"
+                f"📩 After payment, send screenshot + your Chat ID to @backteststock\n\n"
+                f"🆔 Your Chat ID: {chat_id}"
+            )
             return "ok"
-
+        fundamental = get_fundamental_data(text)
         up = get_stock_data(uptrend_sheet, text)
         down = get_stock_data(downtrend_sheet, text)
 
         if up and down:
-            send_message(chat_id, "Stock Found ✅")
+            up_wr = safe_winrate(up["winrate"])
+            down_wr = safe_winrate(down["winrate"])
+
+            base_msg = "The above findings are derived from historical data analysis"
+            stock_name = up["stock"]
+
+            if up_wr > down_wr:
+                better_msg = f"{stock_name} performs better in UPTREND market"
+            elif down_wr > up_wr:
+                better_msg = f"{stock_name} performs better in DOWNTREND market"
+            else:
+                better_msg = f"{stock_name} performs similarly in both trends"
+
+            message = (
+                f"📊 {stock_name}\n"
+                + format_table("UPTREND", up)
+                + format_table("DOWNTREND", down)
+                + f"\n📢 {base_msg}\n{better_msg}\n"
+                + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
+                + format_fundamental(fundamental)
+            )
+
+            try:
+                chart_path = create_bar_chart(stock_name, up_wr, down_wr)
+                send_photo(chat_id, chart_path, message)
+            except:
+                send_message(chat_id, message)
+
+        elif up:
+            send_message(chat_id, f"📊 {up['stock']}" + format_table("UPTREND", up) + format_fundamental(fundamental))
+
+        elif down:
+            send_message(chat_id, f"📊 {down['stock']}" + format_table("DOWNTREND", down) + format_fundamental(fundamental))
+
         else:
-            send_message(chat_id, "❌ Not Found")
+            suggestions = suggest_stocks(text, uptrend_sheet)
+            if suggestions:
+                suggestion_text = "\n".join([f"➡️ {s}" for s in suggestions])
+                send_message(chat_id, f"❌ Stock not found.\n\n🤔 Did you mean:\n{suggestion_text}")
+            else:
+                send_message(chat_id, "❌ Stock not found.\n\nType a valid Indian stock symbol.")
 
         return "ok"
 
     except Exception as e:
         print("ERROR:", e)
         return "error"
+
+# =========================
+# /START HANDLER
+# =========================
+def handle_start(chat_id):
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChatMember"
+        res = requests.get(url, params={
+            "chat_id": TELEGRAM_CHANNEL,
+            "user_id": chat_id
+        }).json()
+
+        status = res.get("result", {}).get("status")
+
+        if status not in ["member", "administrator", "creator"]:
+            send_message(
+                chat_id,
+                "👋 *Welcome!*\n\n"
+                "⚠️ You must join our channel first to use this bot.\n\n"
+                f"👉 Join here: {TELEGRAM_CHANNEL}"
+            )
+            return False
+
+    except Exception as e:
+        print("Join error:", e)
+        return True
+
+    send_message(chat_id, "✅ You are verified!\nThankyou for joining our channel, Here you can find the histocial Win ratio of all the Stocks and do your analysis yourown, just typed a correct symbol.")
+    return True
 
 # =========================
 # RUN
