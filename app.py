@@ -319,7 +319,7 @@ def create_bar_chart(stock, up_wr, down_wr):
 
         ax.imshow(
             grad,
-            extent=[x0, x0  + h, y0, y0 + h],
+            extent=[x0, x0  + w, y0, y0 + h],
             origin="lower",
             aspect="auto",
             cmap=cmap,
