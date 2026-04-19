@@ -244,66 +244,60 @@ def format_table(title, data):
 # =========================
 # BAR CHART
 # =========================
-def create_pro_image(stock, up, down, up_wr, down_wr, fundamental):
-    import matplotlib.pyplot as plt
+from PIL import Image, ImageDraw, ImageFont
 
-    fig = plt.figure(figsize=(6, 8), dpi=300)  # smaller height (IMPORTANT)
-    fig.patch.set_facecolor("#0f172a")
+def create_premium_image(stock, up, down, up_wr, down_wr, fundamental):
+    width, height = 800, 1000
+    img = Image.new("RGB", (width, height), "#0f172a")
+    draw = ImageDraw.Draw(img)
+
+    # Load default font (or custom ttf if available)
+    try:
+        font_big = ImageFont.truetype("arial.ttf", 40)
+        font_mid = ImageFont.truetype("arial.ttf", 26)
+        font_small = ImageFont.truetype("arial.ttf", 22)
+    except:
+        font_big = font_mid = font_small = ImageFont.load_default()
 
     # ================= TITLE =================
-    fig.text(0.5, 0.93, f"{stock} Analysis",
-             ha='center', fontsize=16, color="white", weight='bold')
+    draw.text((200, 40), f"{stock} Analysis", fill="white", font=font_big)
 
-    # ================= BAR CHART =================
-    ax = fig.add_axes([0.15, 0.60, 0.7, 0.25])  # controlled placement
-    ax.set_facecolor("#0f172a")
+    # ================= BAR VISUAL =================
+    # simple bars
+    up_height = int(up_wr * 4)
+    down_height = int(down_wr * 4)
 
-    labels = ["Uptrend", "Downtrend"]
-    values = [up_wr, down_wr]
+    draw.rectangle([150, 400 - up_height, 250, 400], fill="#38bdf8")
+    draw.rectangle([450, 400 - down_height, 550, 400], fill="#60a5fa")
 
-    bars = ax.bar(labels, values)
+    draw.text((160, 410), "Uptrend", fill="white", font=font_small)
+    draw.text((450, 410), "Downtrend", fill="white", font=font_small)
 
-    ax.set_ylim(0, 100)
+    draw.text((160, 370 - up_height), f"{up_wr:.1f}%", fill="white", font=font_small)
+    draw.text((460, 370 - down_height), f"{down_wr:.1f}%", fill="white", font=font_small)
 
-    # clean axis
-    ax.tick_params(colors="white")
-    for spine in ax.spines.values():
-        spine.set_visible(False)
+    # ================= BOXES =================
+    # Uptrend box
+    draw.rectangle([50, 500, 750, 600], outline="#38bdf8", width=2)
+    draw.text((60, 510), f"UPTREND | Trades: {up['trades']} Wins: {up['wins']} Loss: {up['losses']}", fill="white", font=font_small)
 
-    # value labels
-    for bar in bars:
-        h = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2, h + 2,
-                f"{h:.1f}%", ha='center', color="white", fontsize=10)
+    # Downtrend box
+    draw.rectangle([50, 620, 750, 720], outline="#60a5fa", width=2)
+    draw.text((60, 630), f"DOWNTREND | Trades: {down['trades']} Wins: {down['wins']} Loss: {down['losses']}", fill="white", font=font_small)
 
-    # ================= DATA TEXT =================
-    fig.text(0.1, 0.45, "UPTREND", color="#38bdf8", fontsize=12, weight='bold')
-    fig.text(0.1, 0.42,
-             f"Trades: {up['trades']} | Wins: {up['wins']} | Loss: {up['losses']}",
-             color="white", fontsize=10)
+    # Fundamentals
+    draw.rectangle([50, 750, 750, 900], outline="orange", width=2)
+    draw.text((60, 760), "FUNDAMENTALS", fill="orange", font=font_mid)
 
-    fig.text(0.1, 0.36, "DOWNTREND", color="#60a5fa", fontsize=12, weight='bold')
-    fig.text(0.1, 0.33,
-             f"Trades: {down['trades']} | Wins: {down['wins']} | Loss: {down['losses']}",
-             color="white", fontsize=10)
+    draw.text((60, 800), f"PE: {fundamental.get('pe', 'N/A')}", fill="white", font=font_small)
+    draw.text((60, 830), f"EPS: {fundamental.get('eps', 'N/A')}", fill="white", font=font_small)
+    draw.text((60, 860), f"EV/EBITDA: {fundamental.get('ev_ebitda', 'N/A')}", fill="white", font=font_small)
 
-    # ================= FUNDAMENTALS =================
-    fig.text(0.1, 0.25, "FUNDAMENTALS", color="orange", fontsize=12, weight='bold')
+    # Save
+    path = f"/tmp/{stock}_premium.png"
+    img.save(path)
 
-    fig.text(0.1, 0.22,
-             f"PE: {fundamental.get('pe', 'N/A')} | EPS: {fundamental.get('eps', 'N/A')}",
-             color="white", fontsize=10)
-
-    fig.text(0.1, 0.19,
-             f"EV/EBITDA: {fundamental.get('ev_ebitda', 'N/A')}",
-             color="white", fontsize=10)
-
-    # ================= SAVE =================
-    file_path = f"/tmp/{stock}_pro.png"
-    plt.savefig(file_path, bbox_inches="tight", facecolor=fig.get_facecolor())
-    plt.close()
-
-    return file_path
+    return path
 # =========================
 # WEBHOOK
 # =========================
@@ -382,7 +376,7 @@ def webhook():
             )
 
             try:
-                chart_path = create_pro_image(stock_name, up, down, up_wr, down_wr, fundamental)
+                chart_path = create_premium_image(stock_name, up, down, up_wr, down_wr, fundamental)
 
                 caption = (
                     f"📊 *{stock_name} Analysis*\n\n"
