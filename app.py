@@ -395,14 +395,14 @@ def create_bar_chart(stock, up_wr, down_wr):
             fontweight="bold",
             fontsize=10,
             color="black",
-            path_effects=[pe.withStroke(linewidth=1.5, foreground="black")]
+            path_effects=[pe.withStroke(linewidth=1.5, foreground="white")]
         )
 
     # Axis styling
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.spines["bottom"].set_color("black")
-    ax.spines["left"].set_color("black")
+    ax.spines["bottom"].set_color("white")
+    ax.spines["left"].set_color("white")
 
     plt.ylim(0, 100)
     plt.tight_layout()
