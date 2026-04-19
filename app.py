@@ -434,7 +434,8 @@ def webhook():
             )
 
         else:
-    suggestions = suggest_stocks(text, uptrend_sheet)
+
+        suggestions = suggest_stocks(text, uptrend_sheet)
 
     if suggestions:
         suggestion_text = "\n".join([f"➡️ {s}" for s in suggestions])
