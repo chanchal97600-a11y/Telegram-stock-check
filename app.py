@@ -244,8 +244,8 @@ def format_table(title, data):
         f"{data['trades']:<11} | {data['wins']:<7} | {data['losses']:<6} | {data['timeout']:<8} | {data['winrate']:<11}\n"
     )
 
-# CYLINDRICAL GROWTH BAR CHART (ROUNDED - PREMIUM STYLE)
-# =====================================================
+# HORIZONTAL GROWTH BAR CHART (ROUNDED - PREMIUM STYLE)
+# ====================================================
 def create_bar_chart(stock, up_wr, down_wr):
     import numpy as np
     import matplotlib.pyplot as plt
@@ -255,21 +255,21 @@ def create_bar_chart(stock, up_wr, down_wr):
 
     labels = ["Uptrend", "Downtrend"]
     values = [up_wr, down_wr]
-    x = np.array([0, 0.8])
+    y = np.array([0, 0.8])
 
-    fig, ax = plt.subplots(figsize=(2.1, 3.8), dpi=400)
+    fig, ax = plt.subplots(figsize=(4.2, 2.5), dpi=400)
     fig.patch.set_facecolor("#0a0a0a")
     ax.set_facecolor("#111111")
 
-    bar_width = 0.45
+    bar_height = 0.45
 
-    # --- Create Rounded Bars ---
+    # --- Create Horizontal Rounded Bars ---
     bars = []
-    for xi, val in zip(x, values):
+    for yi, val in zip(y, values):
         bar = FancyBboxPatch(
-            (xi - bar_width/2, 0),
-            bar_width,
-            val,
+            (0, yi - bar_height/2),   # start from left
+            val,                     # width = value
+            bar_height,
             boxstyle="round,pad=0,rounding_size=0.12",
             linewidth=0,
             facecolor="none"
@@ -277,7 +277,7 @@ def create_bar_chart(stock, up_wr, down_wr):
         ax.add_patch(bar)
         bars.append(bar)
 
-    # 🔥 BLUE → GREEN GROWTH GRADIENTS
+    # 🔥 Gradient colors
     growth_cmap = LinearSegmentedColormap.from_list(
         "growth",
         ["#0a3d62", "#0074D9", "#00c3ff", "#2ecc71", "#7bed9f"]
@@ -288,18 +288,18 @@ def create_bar_chart(stock, up_wr, down_wr):
         ["#082a4d", "#005bb5", "#00a8ff", "#27ae60", "#6effa3"]
     )
 
-    # --- Gradient Function ---
-    def apply_cylindrical_gradient(ax, bar, cmap):
+    # --- Gradient Function (LEFT → RIGHT) ---
+    def apply_gradient(ax, bar, cmap):
         x0, y0 = bar.get_x(), bar.get_y()
         w, h = bar.get_width(), bar.get_height()
 
-    # 🔥 VERTICAL GRADIENT (bottom → top)
-        grad = np.linspace(0, 1, 256).reshape(256, 1)
-        grad = np.repeat(grad, 256, axis=1)
+        # 🔥 Horizontal gradient
+        grad = np.linspace(0, 1, 256).reshape(1, 256)
+        grad = np.repeat(grad, 256, axis=0)
 
         ax.imshow(
             grad,
-            extent=[x0, x0 + w, 0, h],
+            extent=[x0, x0 + w, y0, y0 + h],
             origin="lower",
             aspect="auto",
             cmap=cmap,
@@ -308,31 +308,13 @@ def create_bar_chart(stock, up_wr, down_wr):
             zorder=2
         )
 
-    # 🔥 Optional: soft center shine (keep or remove)
+        # 🔥 Shine effect
         highlight = np.linspace(0, 1, 256)
         highlight = np.tile(highlight, (256, 1))
 
         ax.imshow(
             highlight,
-            extent=[x0 + w*0.3, x0 + w*0.7, 0, h],
-            origin="lower",
-            aspect="auto",
-            cmap=LinearSegmentedColormap.from_list(
-                "shine",
-                ["#ffffff00", "#ffffff55", "#ffffffaa", "#ffffff55", "#ffffff00"]
-        ),
-        clip_path=bar,
-        clip_on=True,
-        zorder=3
-    )
-
-        # 🔥 Smooth center shine
-        highlight = np.linspace(0, 1, 256)
-        highlight = np.tile(highlight, (256, 1))
-
-        ax.imshow(
-            highlight,
-            extent=[x0 + w*0.25, x0 + w*0.75, 0, h],
+            extent=[x0 + w*0.3, x0 + w*0.7, y0, y0 + h],
             origin="lower",
             aspect="auto",
             cmap=LinearSegmentedColormap.from_list(
@@ -344,27 +326,9 @@ def create_bar_chart(stock, up_wr, down_wr):
             zorder=3
         )
 
-        # 🔥 Top glow (premium look)
-        top_glow = np.linspace(1, 0, 256).reshape(256, 1)
-        top_glow = np.repeat(top_glow, 256, axis=1)
-
-        ax.imshow(
-            top_glow,
-            extent=[x0, x0 + w, h*0.7, h],
-            origin="lower",
-            aspect="auto",
-            cmap=LinearSegmentedColormap.from_list(
-                "top_glow",
-                ["#ffffff88", "#ffffff00"]
-            ),
-            clip_path=bar,
-            clip_on=True,
-            zorder=4
-        )
-
     # Apply gradients
-    apply_cylindrical_gradient(ax, bars[0], growth_cmap)
-    apply_cylindrical_gradient(ax, bars[1], growth_cmap_alt)
+    apply_gradient(ax, bars[0], growth_cmap)
+    apply_gradient(ax, bars[1], growth_cmap_alt)
 
     # Shadow
     for bar in bars:
@@ -373,29 +337,28 @@ def create_bar_chart(stock, up_wr, down_wr):
             pe.Normal()
         ])
 
-    # Titles & labels
-    ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold", color="black")
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels, color="black")
-    ax.set_ylabel("Win %", color="black")
-    ax.tick_params(axis='y', colors='black')
+    # Labels
+    ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold", color="white")
+    ax.set_yticks(y)
+    ax.set_yticklabels(labels, color="white")
+    ax.set_xlabel("Win %", color="white")
+    ax.tick_params(axis='x', colors='white')
 
-    # 🔥 Text (perfect alignment)
+    # 🔥 Value text (right side of bar)
     for bar in bars:
-        h = bar.get_height()
-        x_center = bar.get_bbox().x0 + bar.get_bbox().width / 2
-        x_center += 0.005  # optical correction
+        w = bar.get_width()
+        y_center = bar.get_bbox().y0 + bar.get_bbox().height / 2
 
         ax.text(
-            x_center,
-            h + (2 if h < 90 else 1.2),
-            f"{h:.1f}%",
-            ha="center",
-            va="bottom",
+            w + 2,
+            y_center,
+            f"{w:.1f}%",
+            va="center",
+            ha="left",
             fontweight="bold",
             fontsize=10,
-            color="black",
-            path_effects=[pe.withStroke(linewidth=1.5, foreground="white")]
+            color="white",
+            path_effects=[pe.withStroke(linewidth=1.5, foreground="black")]
         )
 
     # Axis styling
@@ -404,7 +367,7 @@ def create_bar_chart(stock, up_wr, down_wr):
     ax.spines["bottom"].set_color("white")
     ax.spines["left"].set_color("white")
 
-    plt.ylim(0, 100)
+    plt.xlim(0, 100)
     plt.tight_layout()
 
     file_path = f"/tmp/{stock}_bar.png"
