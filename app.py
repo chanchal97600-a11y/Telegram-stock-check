@@ -329,22 +329,38 @@ def create_bar_chart(stock, up_wr, down_wr):
         )
 
         # subtle shine
-        highlight = np.linspace(0, 1, 256)
-        highlight = np.tile(highlight, (256, 1))
+highlight = np.linspace(0, 1, 256)
+highlight = np.tile(highlight, (256, 1))
 
-        ax.imshow(
-            highlight,
-            extent=[x0 + w*0.3, x0 + w*0.7, y0, y0 + h],
-            origin="lower",
-            aspect="auto",
-            cmap=LinearSegmentedColormap.from_list(
-                "shine",
-                ["#ffffff00", "#ffffff40", "#ffffff80", "#ffffff40", "#ffffff00"]
-            ),
-            clip_path=bar,
-            clip_on=True,
-            zorder=3
-        )
+# LEFT EDGE
+ax.imshow(
+    highlight,
+    extent=[x0, x0 + w*0.12, y0, y0 + h],
+    origin="lower",
+    aspect="auto",
+    cmap=LinearSegmentedColormap.from_list(
+        "left_shine",
+        ["#ffffff60", "#ffffff20", "#ffffff00"]
+    ),
+    clip_path=bar,
+    clip_on=True,
+    zorder=3
+)
+
+# RIGHT EDGE
+ax.imshow(
+    highlight,
+    extent=[x0 + w*0.88, x0 + w, y0, y0 + h],
+    origin="lower",
+    aspect="auto",
+    cmap=LinearSegmentedColormap.from_list(
+        "right_shine",
+        ["#ffffff00", "#ffffff20", "#ffffff60"]
+    ),
+    clip_path=bar,
+    clip_on=True,
+    zorder=3
+)
 
     # Apply gradients
     apply_gradient(ax, bars[0], orange_cmap)
