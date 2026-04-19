@@ -244,8 +244,8 @@ def format_table(title, data):
         f"{data['trades']:<11} | {data['wins']:<7} | {data['losses']:<6} | {data['timeout']:<8} | {data['winrate']:<11}\n"
     )
 
-# CYLINDRICAL METALLIC BAR CHART (ROUNDED)
-# =======================================
+# CYLINDRICAL GROWTH BAR CHART (ROUNDED - PREMIUM STYLE)
+# =====================================================
 def create_bar_chart(stock, up_wr, down_wr):
     import numpy as np
     import matplotlib.pyplot as plt
@@ -270,27 +270,30 @@ def create_bar_chart(stock, up_wr, down_wr):
             (xi - bar_width/2, 0),
             bar_width,
             val,
-            boxstyle="round,pad=0,rounding_size=0.12",  # 🔥 controls roundness
+            boxstyle="round,pad=0,rounding_size=0.12",
             linewidth=0,
             facecolor="none"
         )
         ax.add_patch(bar)
         bars.append(bar)
 
-    gold_cmap = LinearSegmentedColormap.from_list(
-        "gold",
-        ["#3d2b00", "#b8962e", "#ffd700", "#fff2a8", "#b8962e", "#3d2b00"]
+    # 🔥 BLUE → GREEN GROWTH GRADIENTS
+    growth_cmap = LinearSegmentedColormap.from_list(
+        "growth",
+        ["#0a3d62", "#0074D9", "#00c3ff", "#2ecc71", "#7bed9f"]
     )
 
-    silver_cmap = LinearSegmentedColormap.from_list(
-        "silver",
-        ["#2e2e2e", "#9ea2a2", "#e6e8e8", "#ffffff", "#9ea2a2", "#2e2e2e"]
+    growth_cmap_alt = LinearSegmentedColormap.from_list(
+        "growth_alt",
+        ["#082a4d", "#005bb5", "#00a8ff", "#27ae60", "#6effa3"]
     )
 
+    # --- Gradient Function ---
     def apply_cylindrical_gradient(ax, bar, cmap):
         x0, y0 = bar.get_x(), bar.get_y()
         w, h = bar.get_width(), bar.get_height()
 
+        # Main gradient
         grad = np.linspace(0, 1, 256).reshape(1, 256)
         grad = np.repeat(grad, 256, axis=0)
 
@@ -305,37 +308,65 @@ def create_bar_chart(stock, up_wr, down_wr):
             zorder=2
         )
 
-        highlight = np.ones((256, 256))
+        # 🔥 Smooth center shine
+        highlight = np.linspace(0, 1, 256)
+        highlight = np.tile(highlight, (256, 1))
+
         ax.imshow(
             highlight,
-            extent=[x0 + w*0.35, x0 + w*0.65, 0, h],
+            extent=[x0 + w*0.25, x0 + w*0.75, 0, h],
             origin="lower",
             aspect="auto",
-            cmap=LinearSegmentedColormap.from_list("", ["#ffffff00", "#ffffff88", "#ffffff00"]),
+            cmap=LinearSegmentedColormap.from_list(
+                "shine",
+                ["#ffffff00", "#ffffff55", "#ffffffaa", "#ffffff55", "#ffffff00"]
+            ),
             clip_path=bar,
             clip_on=True,
             zorder=3
         )
 
-    apply_cylindrical_gradient(ax, bars[0], gold_cmap)
-    apply_cylindrical_gradient(ax, bars[1], silver_cmap)
+        # 🔥 Top glow (premium look)
+        top_glow = np.linspace(1, 0, 256).reshape(256, 1)
+        top_glow = np.repeat(top_glow, 256, axis=1)
 
+        ax.imshow(
+            top_glow,
+            extent=[x0, x0 + w, h*0.7, h],
+            origin="lower",
+            aspect="auto",
+            cmap=LinearSegmentedColormap.from_list(
+                "top_glow",
+                ["#ffffff88", "#ffffff00"]
+            ),
+            clip_path=bar,
+            clip_on=True,
+            zorder=4
+        )
+
+    # Apply gradients
+    apply_cylindrical_gradient(ax, bars[0], growth_cmap)
+    apply_cylindrical_gradient(ax, bars[1], growth_cmap_alt)
+
+    # Shadow
     for bar in bars:
         bar.set_path_effects([
             pe.SimplePatchShadow(offset=(2, -2), alpha=0.5),
             pe.Normal()
         ])
 
+    # Titles & labels
     ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold", color="white")
     ax.set_xticks(x)
     ax.set_xticklabels(labels, color="white")
     ax.set_ylabel("Win %", color="white")
     ax.tick_params(axis='y', colors='white')
 
+    # 🔥 Text (perfect alignment)
     for bar in bars:
         h = bar.get_height()
         x_center = bar.get_bbox().x0 + bar.get_bbox().width / 2
-        x_center += 0.005  # 🔥 optical correction
+        x_center += 0.005  # optical correction
 
         ax.text(
             x_center,
@@ -349,6 +380,7 @@ def create_bar_chart(stock, up_wr, down_wr):
             path_effects=[pe.withStroke(linewidth=1.5, foreground="black")]
         )
 
+    # Axis styling
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.spines["bottom"].set_color("white")
