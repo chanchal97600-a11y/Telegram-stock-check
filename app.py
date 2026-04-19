@@ -433,6 +433,7 @@ def webhook():
                 format_fundamental(fundamental)
             )
 
+        else:
         suggestions = suggest_stocks(text, uptrend_sheet)
 
     if suggestions:
