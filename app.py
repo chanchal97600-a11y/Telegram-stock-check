@@ -244,50 +244,53 @@ def format_table(title, data):
 # =========================
 # BAR CHART
 # =========================
-def create_bar_chart(stock, up_wr, down_wr):
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import matplotlib.patheffects as pe
+from PIL import Image, ImageDraw, ImageFont
 
-    labels = ["Uptrend", "Downtrend"]
-    values = [up_wr, down_wr]
-    x = np.array([0, 0.8])
+def create_stock_card(stock, up, down, fundamental):
+    try:
+        # Load your background image (the one you uploaded)
+        img = Image.open("template.png").convert("RGBA")
 
-    fig, ax = plt.subplots(figsize=(2.1, 4.8), dpi=400)
-    fig.patch.set_facecolor("#aeb5bf")
-    ax.set_facecolor("#aeb5bf")
+        draw = ImageDraw.Draw(img)
 
-    colors = ["#00A6FF", "#005B96"]
-    bars = ax.bar(x, values, width=0.45, color=colors, edgecolor="none")
+        # Font (use default if custom not available)
+        try:
+            font_big = ImageFont.truetype("arial.ttf", 60)
+            font = ImageFont.truetype("arial.ttf", 28)
+        except:
+            font_big = font = ImageFont.load_default()
 
-    for bar in bars:
-        bar.set_path_effects([
-            pe.SimplePatchShadow(offset=(3, -3), alpha=0.5),
-            pe.Normal()
-        ])
+        # ================= TEXT =================
+        up_text = (
+            f"📊 UPTREND\n"
+            f"Trades | Wins | Loss | Timeout | Win%\n"
+            f"{up['trades']} | {up['wins']} | {up['losses']} | {up['timeout']} | {up['winrate']}"
+        )
 
-    ax.bar(x + 0.05, values, width=0.45, color="#add9ed", alpha=0.4, zorder=0)
+        down_text = (
+            f"📊 DOWNTREND\n"
+            f"Trades | Wins | Loss | Timeout | Win%\n"
+            f"{down['trades']} | {down['wins']} | {down['losses']} | {down['timeout']} | {down['winrate']}"
+        )
 
-    ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold")
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels)
-    ax.set_ylabel("Win %")
+        fund_text = format_fundamental(fundamental)
 
-    for bar in bars:
-        h = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2, h + 1, f"{h:.1f}%", ha="center", fontweight="bold")
+        # ================= DRAW =================
+        draw.text((80, 80), stock, font=font_big, fill="white")
 
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
+        draw.text((80, 200), up_text, font=font, fill="white")
+        draw.text((80, 500), down_text, font=font, fill="white")
+        draw.text((80, 800), fund_text, font=font, fill="white")
 
-    plt.ylim(0, 100)
-    plt.tight_layout()
+        # Save image
+        path = f"/tmp/{stock}_card.png"
+        img.save(path)
 
-    file_path = f"/tmp/{stock}_bar.png"
-    plt.savefig(file_path, bbox_inches="tight")
-    plt.close()
+        return path
 
-    return file_path
+    except Exception as e:
+        print("Image error:", e)
+        return None
 
 # =========================
 # WEBHOOK
@@ -376,8 +379,12 @@ def webhook():
             )
 
             try:
-                chart_path = create_bar_chart(stock_name, up_wr, down_wr)
-                send_photo(chat_id, chart_path, message)
+                card_path = create_stock_card(stock_name, up, down, fundamental)
+
+                    if card_path:
+                         send_photo(chat_id, card_path)
+                    else:
+                        send_message(chat_id, message)
             except:
                 send_message(chat_id, message)
 
