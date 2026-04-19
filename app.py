@@ -244,47 +244,55 @@ def format_table(title, data):
 # =========================
 # BAR CHART
 # =========================
-def create_bar_chart(stock, up_wr, down_wr):
-    import numpy as np
+def create_pro_image(stock, up, down, up_wr, down_wr, fundamental):
     import matplotlib.pyplot as plt
-    import matplotlib.patheffects as pe
+
+    fig = plt.figure(figsize=(6, 10), dpi=300)
+    fig.patch.set_facecolor("#0f172a")
+
+    # ================= TITLE =================
+    plt.text(0.5, 0.95, f"{stock} Performance Analysis",
+             ha='center', fontsize=18, color="white", weight='bold')
+
+    # ================= BAR CHART =================
+    ax = plt.axes([0.15, 0.6, 0.7, 0.25])
+    ax.set_facecolor("#0f172a")
 
     labels = ["Uptrend", "Downtrend"]
     values = [up_wr, down_wr]
-    x = np.array([0, 0.8])
 
-    fig, ax = plt.subplots(figsize=(2.1, 4.8), dpi=400)
-    fig.patch.set_facecolor("#aeb5bf")
-    ax.set_facecolor("#aeb5bf")
-
-    colors = ["#00A6FF", "#005B96"]
-
-    bars = ax.bar(x, values, width=0.45, color=colors, edgecolor="none")
-
-    for bar in bars:
-        bar.set_path_effects([
-            pe.SimplePatchShadow(offset=(3, -3), alpha=0.5),
-            pe.Normal()
-        ])
-
-    ax.bar(x + 0.05, values, width=0.45, color="#add9ed", alpha=0.4, zorder=0)
-
-    ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold")
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels)
-    ax.set_ylabel("Win %")
+    bars = ax.bar(labels, values)
 
     for bar in bars:
         h = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2, h + 1, f"{h:.1f}%", ha="center", fontweight="bold")
+        ax.text(bar.get_x() + bar.get_width()/2, h + 1,
+                f"{h:.1f}%", ha='center', color="white", weight='bold')
 
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
+    ax.set_ylim(0, 100)
+    ax.set_ylabel("Win %", color="white")
+    ax.tick_params(colors="white")
 
-    plt.ylim(0, 100)
-    plt.tight_layout()
+    for spine in ax.spines.values():
+        spine.set_visible(False)
 
-    file_path = f"/tmp/{stock}_bar.png"
+    # ================= TEXT BLOCK =================
+    y = 0.45
+
+    plt.text(0.1, y, "UPTREND", color="#38bdf8", fontsize=14, weight='bold')
+    plt.text(0.1, y-0.05, f"Trades: {up['trades']}  Wins: {up['wins']}  Loss: {up['losses']}", color="white")
+
+    plt.text(0.1, y-0.12, "DOWNTREND", color="#60a5fa", fontsize=14, weight='bold')
+    plt.text(0.1, y-0.17, f"Trades: {down['trades']}  Wins: {down['wins']}  Loss: {down['losses']}", color="white")
+
+    # ================= FUNDAMENTALS =================
+    plt.text(0.1, 0.2, "FUNDAMENTALS", color="orange", fontsize=14, weight='bold')
+
+    plt.text(0.1, 0.15, f"Market Cap: {fundamental.get('market_cap', 'N/A')}", color="white")
+    plt.text(0.1, 0.11, f"PE: {fundamental.get('pe', 'N/A')}", color="white")
+    plt.text(0.1, 0.07, f"EPS: {fundamental.get('eps', 'N/A')}", color="white")
+
+    # ================= SAVE =================
+    file_path = f"/tmp/{stock}_pro.png"
     plt.savefig(file_path, bbox_inches="tight")
     plt.close()
 
@@ -368,8 +376,16 @@ def webhook():
             )
 
             try:
-                chart_path = create_bar_chart(stock_name, up_wr, down_wr)
-                send_photo(chat_id, chart_path, message)
+                chart_path = create_pro_image(stock_name, up, down, up_wr, down_wr, fundamental)
+
+                caption = (
+                    f"📊 *{stock_name} Analysis*\n\n"
+                    f"🔵 Uptrend Win%: {up['winrate']}\n"
+                    f"🔵 Downtrend Win%: {down['winrate']}\n\n"
+                    f"📢 Based on historical data\n"
+                    f"{better_msg}"
+                )
+                send_photo(chat_id, chart_path, caption)
             except:
                 send_message(chat_id, message)
 
