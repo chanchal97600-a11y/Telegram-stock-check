@@ -176,10 +176,17 @@ def get_fundamental_data(symbol):
 
 def format_fundamental(data):
     if not data:
-        return "\n⚠️ *Fundamental data not available*. Please try a diffrent Stock Symbol.\n"
+        return "\n⚠️ *Fundamental data not available*. Please try a different Stock Symbol.\n"
 
-    mc = data.get("market_cap")
-    mc = f"{mc/1e7:.2f} Cr" if mc else "N/A"
+    mc_raw = data.get("market_cap")  # ORIGINAL NUMBER
+
+    if mc_raw:
+        mc_cr = mc_raw / 1e7
+        mc = f"{mc_cr:.2f} Cr"
+        cap_type = get_cap_category(mc_raw)  # ✅ pass number
+    else:
+        mc = "N/A"
+        cap_type = "N/A"
 
     ev_ebitda = data.get("ev_ebitda")
     ev_ebitda = round(ev_ebitda, 2) if ev_ebitda else "N/A"
@@ -187,6 +194,7 @@ def format_fundamental(data):
     return (
         "\n📊 FUNDAMENTALS\n"
         f"Market Cap: {mc}\n"
+        f"Category: {cap_type}\n"
         f"PE Ratio: {data.get('pe', 'N/A')}\n"
         f"EPS: {data.get('eps', 'N/A')}\n"
         f"EV/EBITDA: {ev_ebitda}\n"
