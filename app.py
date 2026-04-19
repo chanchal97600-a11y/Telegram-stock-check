@@ -116,7 +116,7 @@ def check_daily_limit(chat_id):
 def send_message(chat_id, text):
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-        requests.post(url, json={"chat_id": chat_id, "text": text})
+        requests.post(url, json={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"})
     except Exception as e:
         print("Telegram error:", e)
 
@@ -318,7 +318,7 @@ def webhook():
                 status = res.get("result", {}).get("status")
 
                 if status not in ["member", "administrator", "creator"]:
-                    send_message(chat_id, "Hello I am Happy Chatbot for you channel name ABC of Stocks. Before Starting please join our channel so we can serves many more to learn about the historical reviews of more than 2000 Stocks.")
+                    send_message(chat_id, "*Hello* I am *Happy* Chatbot for you channel name *ABC of Stocks*. Before Starting please join our channel so we can serves many more to learn about the historical reviews of more than 2000 Stocks.")
                     return "ok"
 
             except Exception as e:
@@ -327,7 +327,7 @@ def webhook():
 
             send_message(
                 chat_id,
-                "👋 Hello I am Happy Chatbot for you channel name ABC of Stocks. Before Starting please join our channel so we can serves many more to learn about the historical reviews of more than 2000 Stocks."
+                "👋 *Hello* I am *Happy* Chatbot for you channel name *ABC of Stocks*. Before Starting please join our channel so we can serves many more to learn about the historical reviews of more than 2000 Stocks."
             )
             return "ok"
 
@@ -340,7 +340,7 @@ def webhook():
         if not check_daily_limit(chat_id):
             send_message(
                 chat_id,
-                f"🚫 Daily limit reached.\n\n"
+                f"🚫 *Daily limit reached*.\n\n"
                 f"⏳ Try again tomorrow or upgrade to learn more.\n\n"
                 f"💰 Just for ₹200 (ek pizza kam kha lunga 🍕 lakin Analysis jarur karunga)\n"
                 f"📲 pay securely via Razorpay: https://razorpay.me/@kumar9709?amount=ExQs%2Fv%2FDDS71hestyV8B7g%3D%3D\n\n"
@@ -363,9 +363,9 @@ def webhook():
             base_msg = "The above findings are derived from historical data analysis"
             stock_name = up["stock"]
             if up_wr > down_wr:
-                better_msg = f"{stock_name} can be traded in any market trend. However, better results are observed during Uptrend phases"
+                better_msg = f"{stock_name} can be traded in any market trend. However, better results are observed during Uptrend of the market"
             elif down_wr > up_wr:
-                better_msg = f"{stock_name} can be traded in any market trend. However, better results are observed during Downtrend phases"
+                better_msg = f"{stock_name} can be traded in any market trend. However, better results are observed during Downtrend of the market"
             else:
                 better_msg = f"{stock_name} can be traded in any market trend. However, same results are observed in both phases"          
 
@@ -399,7 +399,7 @@ def webhook():
             )
 
         else:
-            send_message(chat_id, "Hello I am Happy Chatbot for you channel name ABC of Stocks. You just typed a wrong Symbol of indian stock,I will be really happy if you  type a valid stock Symbol")
+            send_message(chat_id, "*Hello* I am *Happy* Chatbot for you channel name *ABC of Stocks*. You just typed a wrong Symbol of indian stock,I will be really happy if you  type a valid stock Symbol")
 
         return "ok"
 
