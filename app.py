@@ -245,12 +245,13 @@ def format_table(title, data):
     )
 
 # =========================
-# BAR CHART (GRADIENT)
+# CYLINDRICAL METALLIC BAR CHART
 # =========================
 def create_bar_chart(stock, up_wr, down_wr):
     import numpy as np
-    import matplotlib.patheffects as pe
     import matplotlib.pyplot as plt
+    import matplotlib.patheffects as pe
+    from matplotlib.colors import LinearSegmentedColormap
 
     labels = ["Uptrend", "Downtrend"]
     values = [up_wr, down_wr]
@@ -260,52 +261,82 @@ def create_bar_chart(stock, up_wr, down_wr):
     fig.patch.set_facecolor("#aeb5bf")
     ax.set_facecolor("#aeb5bf")
 
-    # Create invisible bars (for clipping gradients)
-    bars = ax.bar(x, values, width=0.45, color="none", edgecolor="none")
+    # SAME WIDTH for both
+    bar_width = 0.45
+    bars = ax.bar(x, values, width=bar_width, color="none", edgecolor="none")
 
-    # Gradient function
-    def apply_gradient(ax, bar, color1, color2):
+    # --- Metallic Gradient (multi-tone for realism) ---
+    gold_cmap = LinearSegmentedColormap.from_list(
+        "gold",
+        ["#3d2b00", "#b8962e", "#ffd700", "#fff2a8", "#b8962e", "#3d2b00"]
+    )
+
+    silver_cmap = LinearSegmentedColormap.from_list(
+        "silver",
+        ["#2e2e2e", "#9ea2a2", "#e6e8e8", "#ffffff", "#9ea2a2", "#2e2e2e"]
+    )
+
+    def apply_cylindrical_gradient(ax, bar, cmap):
         x0 = bar.get_x()
-        y0 = 0
         w = bar.get_width()
         h = bar.get_height()
 
-        grad = np.linspace(0, 1, 256).reshape(256, 1)
-        grad = np.repeat(grad, 2, axis=1)
+        # Horizontal gradient (for cylindrical look)
+        grad = np.linspace(0, 1, 256).reshape(1, 256)
+        grad = np.repeat(grad, 256, axis=0)
 
         ax.imshow(
             grad,
-            extent=[x0, x0 + w, y0, y0 + h],
+            extent=[x0, x0 + w, 0, h],
             origin="lower",
             aspect="auto",
-            cmap=plt.matplotlib.colors.LinearSegmentedColormap.from_list("", [color1, color2]),
+            cmap=cmap,
             clip_path=bar,
-            clip_on=True
+            clip_on=True,
+            zorder=2
         )
 
-    # Apply GOLD gradient (Uptrend)
-    apply_gradient(ax, bars[0], "#FFD700", "#B8860B")
+        # --- Add center highlight (cylinder shine) ---
+        highlight = np.ones((256, 256))
+        ax.imshow(
+            highlight,
+            extent=[x0 + w*0.35, x0 + w*0.65, 0, h],
+            origin="lower",
+            aspect="auto",
+            cmap=LinearSegmentedColormap.from_list("", ["#ffffff00", "#ffffff88", "#ffffff00"]),
+            clip_path=bar,
+            clip_on=True,
+            zorder=3
+        )
 
-    # Apply SILVER gradient (Downtrend)
-    apply_gradient(ax, bars[1], "#C0C0C0", "#808080")
+    # Apply gradients
+    apply_cylindrical_gradient(ax, bars[0], gold_cmap)
+    apply_cylindrical_gradient(ax, bars[1], silver_cmap)
 
-    # Shadow effect
+    # Shadow for depth
     for bar in bars:
         bar.set_path_effects([
-            pe.SimplePatchShadow(offset=(3, -3), alpha=0.4),
+            pe.SimplePatchShadow(offset=(2, -2), alpha=0.5),
             pe.Normal()
         ])
 
+    # Labels
     ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     ax.set_ylabel("Win %")
 
-    # Value labels
+    # Value text
     for bar in bars:
         h = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2, h + 1,
-                f"{h:.1f}%", ha="center", fontweight="bold")
+        ax.text(
+            bar.get_x() + bar.get_width()/2,
+            h + 1,
+            f"{h:.1f}%",
+            ha="center",
+            fontweight="bold",
+            fontsize=9
+        )
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
