@@ -255,8 +255,8 @@ def create_stock_card(stock, up, down, fundamental):
 
         # Font (use default if custom not available)
         try:
-            font_big = ImageFont.truetype("arial.ttf", 60)
-            font = ImageFont.truetype("arial.ttf", 28)
+            font_big = ImageFont.truetype("arial.ttf", 200)
+            font = ImageFont.truetype("arial.ttf", 120)
         except:
             font_big = font = ImageFont.load_default()
 
