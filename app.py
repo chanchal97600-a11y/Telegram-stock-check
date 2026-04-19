@@ -244,7 +244,7 @@ def format_table(title, data):
         f"\n📊 {title}\n"
         "```\n"
         f"{'Trades':<8} | {'Wins':<6} | {'Loss':<6} | {'Timeout':<8} | {'Win%':<6}\n"
-        f"{data['trades']:<11} | {data['wins']:<9} | {data['losses']:<9} | {data['timeout']:<13} | {data['winrate']:<13}\n"
+        f"{data['trades']:<11} | {data['wins']:<8} | {data['losses']:<9} | {data['timeout']:<13} | {data['winrate']:<11}\n"
         "```"
     )
 
