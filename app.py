@@ -312,27 +312,40 @@ def webhook():
             return "ok"
 
         text = text.strip()
+        #==================================
+        #START
+        #=================================
+
 
         if text.upper() == "/START":
-            try:
-                url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChatMember"
-                res = requests.get(url, params={
-                    "chat_id": TELEGRAM_CHANNEL,
-                    "user_id": chat_id
-                }).json()
 
-                status = res.get("result", {}).get("status")
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChatMember"
+        res = requests.get(url, params={
+            "chat_id": TELEGRAM_CHANNEL,
+            "user_id": chat_id
+        }).json()
 
-                if status not in ["member", "administrator", "creator"]:
-                    send_message(chat_id, "*Hello* I am *Happy* Chatbot for your channel name *ABC of Stocks*. Before Starting please join our channel so we can serves many more to learn about the historical reviews of more than 2000 Stocks.")
-                    return "ok"
+        status = res.get("result", {}).get("status")
 
-            except Exception as e:
-                print("Join error:", e)
-                return "ok"
+        if status not in ["member", "administrator", "creator"]:
+            send_message(
+                chat_id,
+                "👋 *Welcome!*\n\n"
+                "⚠️ You must join our channel first to use this bot.\n\n"
+                f"👉 Join here: {TELEGRAM_CHANNEL}"
+            )
+            return "ok"   # 🔴 IMPORTANT STOP HERE
 
-            send_message(chat_id, "👋 *Hello* I am *Happy* Chatbot for your channel name *ABC of Stocks*. Before Starting please join our channel so we can serves many more to learn about the historical reviews of more than 2000 Stocks.")
-            return "ok"
+    except Exception as e:
+        print("Join error:", e)
+        return "ok"
+
+    send_message(
+        chat_id,
+        "✅ You are verified!\nNow you can use the bot."
+    )
+    return "ok"
 
         user = data["message"].get("from", {})
         save_user(chat_id, user.get("username"), user.get("first_name"))
