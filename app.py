@@ -334,17 +334,19 @@ def create_bar_chart(stock, up_wr, down_wr):
 
     for bar in bars:
         h = bar.get_height()
-        x_center = bar.get_x() + bar.get_width() / 2
+        x_center = bar.get_bbox().x0 + bar.get_bbox().width / 2
+        x_center += 0.005  # 🔥 optical correction
 
         ax.text(
-        x_center,
-        h + 2,  # 🔥 more spacing above bar (fix overlap)
-        f"{h:.1f}%",
-        ha="center",
-        va="bottom",
-        fontweight="bold",
-        fontsize=9,
-        color="white"
+            x_center,
+            h + (2 if h < 90 else 1.2),
+            f"{h:.1f}%",
+            ha="center",
+            va="bottom",
+            fontweight="bold",
+            fontsize=9,
+            color="white",
+            path_effects=[pe.withStroke(linewidth=1.5, foreground="black")]
         )
 
     ax.spines["top"].set_visible(False)
