@@ -333,10 +333,10 @@ def create_bar_chart(stock, up_wr, down_wr):
     ax.tick_params(axis='y', colors='white')
 
     for bar in bars:
-    h = bar.get_height()
-    x_center = bar.get_x() + bar.get_width() / 2
+        h = bar.get_height()
+        x_center = bar.get_x() + bar.get_width() / 2
 
-    ax.text(
+        ax.text(
         x_center,
         h + 2,  # 🔥 more spacing above bar (fix overlap)
         f"{h:.1f}%",
@@ -345,7 +345,7 @@ def create_bar_chart(stock, up_wr, down_wr):
         fontweight="bold",
         fontsize=9,
         color="white"
-    )
+        )
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
