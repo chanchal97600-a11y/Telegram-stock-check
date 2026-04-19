@@ -244,7 +244,6 @@ def format_table(title, data):
         f"{data['trades']:<11} | {data['wins']:<7} | {data['losses']:<6} | {data['timeout']:<8} | {data['winrate']:<11}\n"
     )
 
-# =========================
 # CYLINDRICAL METALLIC BAR CHART
 # =========================
 def create_bar_chart(stock, up_wr, down_wr):
@@ -261,11 +260,9 @@ def create_bar_chart(stock, up_wr, down_wr):
     fig.patch.set_facecolor("black")
     ax.set_facecolor("black")
 
-    # SAME WIDTH for both
     bar_width = 0.45
     bars = ax.bar(x, values, width=bar_width, color="none", edgecolor="none")
 
-    # --- Metallic Gradient (multi-tone for realism) ---
     gold_cmap = LinearSegmentedColormap.from_list(
         "gold",
         ["#3d2b00", "#b8962e", "#ffd700", "#fff2a8", "#b8962e", "#3d2b00"]
@@ -281,7 +278,6 @@ def create_bar_chart(stock, up_wr, down_wr):
         w = bar.get_width()
         h = bar.get_height()
 
-        # Horizontal gradient (for cylindrical look)
         grad = np.linspace(0, 1, 256).reshape(1, 256)
         grad = np.repeat(grad, 256, axis=0)
 
@@ -296,7 +292,6 @@ def create_bar_chart(stock, up_wr, down_wr):
             zorder=2
         )
 
-        # --- Add center highlight (cylinder shine) ---
         highlight = np.ones((256, 256))
         ax.imshow(
             highlight,
@@ -309,24 +304,21 @@ def create_bar_chart(stock, up_wr, down_wr):
             zorder=3
         )
 
-    # Apply gradients
     apply_cylindrical_gradient(ax, bars[0], gold_cmap)
     apply_cylindrical_gradient(ax, bars[1], silver_cmap)
 
-    # Shadow for depth
     for bar in bars:
         bar.set_path_effects([
             pe.SimplePatchShadow(offset=(2, -2), alpha=0.5),
             pe.Normal()
         ])
 
-    # Labels
-    ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold")
+    ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold", color="white")
     ax.set_xticks(x)
-    ax.set_xticklabels(labels)
-    ax.set_ylabel("Win %")
+    ax.set_xticklabels(labels, color="white")
+    ax.set_ylabel("Win %", color="white")
+    ax.tick_params(axis='y', colors='white')
 
-    # Value text
     for bar in bars:
         h = bar.get_height()
         ax.text(
@@ -335,11 +327,14 @@ def create_bar_chart(stock, up_wr, down_wr):
             f"{h:.1f}%",
             ha="center",
             fontweight="bold",
-            fontsize=9
+            fontsize=9,
+            color="white"
         )
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
+    ax.spines["bottom"].set_color("white")
+    ax.spines["left"].set_color("white")
 
     plt.ylim(0, 100)
     plt.tight_layout()
