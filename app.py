@@ -374,11 +374,11 @@ def create_bar_chart(stock, up_wr, down_wr):
         ])
 
     # Titles & labels
-    ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold", color="white")
+    ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold", color="black")
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, color="white")
-    ax.set_ylabel("Win %", color="white")
-    ax.tick_params(axis='y', colors='white')
+    ax.set_xticklabels(labels, color="black")
+    ax.set_ylabel("Win %", color="black")
+    ax.tick_params(axis='y', colors='black')
 
     # 🔥 Text (perfect alignment)
     for bar in bars:
@@ -393,16 +393,16 @@ def create_bar_chart(stock, up_wr, down_wr):
             ha="center",
             va="bottom",
             fontweight="bold",
-            fontsize=9,
-            color="white",
+            fontsize=10,
+            color="black",
             path_effects=[pe.withStroke(linewidth=1.5, foreground="black")]
         )
 
     # Axis styling
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.spines["bottom"].set_color("white")
-    ax.spines["left"].set_color("white")
+    ax.spines["bottom"].set_color("black")
+    ax.spines["left"].set_color("black")
 
     plt.ylim(0, 100)
     plt.tight_layout()
