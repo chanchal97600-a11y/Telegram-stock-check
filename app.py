@@ -312,8 +312,91 @@ def webhook():
             return "ok"
 
         text = text.strip()
-       # =========================
-# /START HANDLER FIXED
+
+        # =========================
+        # HANDLE /START COMMAND
+        # =========================
+        if text.lower() == "/start":
+            handle_start(chat_id)
+            return "ok"
+
+        # =========================
+        # SAVE USER
+        # =========================
+        user = data["message"].get("from", {})
+        save_user(chat_id, user.get("username"), user.get("first_name"))
+
+        # =========================
+        # DAILY LIMIT CHECK
+        # =========================
+        if not check_daily_limit(chat_id):
+            send_message(chat_id, "🚫 *Daily limit reached*.\n\n⏳ Try again tomorrow or upgrade to learn more.")
+            return "ok"
+
+        # =========================
+        # DATA FETCH
+        # =========================
+        fundamental = get_fundamental_data(text)
+
+        up = get_stock_data(uptrend_sheet, text)
+        down = get_stock_data(downtrend_sheet, text)
+
+        # =========================
+        # RESPONSE BUILDING
+        # =========================
+        if up and down:
+            up_wr = safe_winrate(up["winrate"])
+            down_wr = safe_winrate(down["winrate"])
+
+            base_msg = "The above findings are derived from historical data analysis"
+            stock_name = up["stock"]
+
+            if up_wr > down_wr:
+                better_msg = f"{stock_name} performs better in UPTREND market"
+            elif down_wr > up_wr:
+                better_msg = f"{stock_name} performs better in DOWNTREND market"
+            else:
+                better_msg = f"{stock_name} performs similarly in both trends"
+
+            message = (
+                f"📊 {stock_name}\n"
+                + format_table("UPTREND", up)
+                + format_table("DOWNTREND", down)
+                + f"\n📢 {base_msg}\n{better_msg}\n"
+                + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
+                + format_fundamental(fundamental)
+            )
+
+            try:
+                chart_path = create_bar_chart(stock_name, up_wr, down_wr)
+                send_photo(chat_id, chart_path, message)
+            except:
+                send_message(chat_id, message)
+
+        elif up:
+            send_message(chat_id, f"📊 {up['stock']}" + format_table("UPTREND", up) + format_fundamental(fundamental))
+
+        elif down:
+            send_message(chat_id, f"📊 {down['stock']}" + format_table("DOWNTREND", down) + format_fundamental(fundamental))
+
+        else:
+            suggestions = suggest_stocks(text, uptrend_sheet)
+
+            if suggestions:
+                suggestion_text = "\n".join([f"➡️ {s}" for s in suggestions])
+                send_message(chat_id, f"❌ Stock not found.\n\n🤔 Did you mean:\n{suggestion_text}")
+            else:
+                send_message(chat_id, "❌ Stock not found.\n\nType a valid Indian stock symbol.")
+
+        return "ok"
+
+    except Exception as e:
+        print("ERROR:", e)
+        return "error"
+
+
+# =========================
+# /START HANDLER (OUTSIDE)
 # =========================
 def handle_start(chat_id):
     try:
@@ -339,78 +422,14 @@ def handle_start(chat_id):
         return True
 
     send_message(chat_id, "✅ You are verified!\nNow you can use the bot.")
-    return True  
+    return True
 
-    send_message(
-        chat_id,
-        "✅ You are verified!\nNow you can use the bot."
-    )
-    return "ok"
-
-        user = data["message"].get("from", {})
-        save_user(chat_id, user.get("username"), user.get("first_name"))
-
-        if not check_daily_limit(chat_id):
-            send_message(chat_id, f"🚫 *Daily limit reached*.\n\n⏳ Try again tomorrow or upgrade to learn more.")
-            return "ok"
-
-        fundamental = get_fundamental_data(text)
-
-        up = get_stock_data(uptrend_sheet, text)
-        down = get_stock_data(downtrend_sheet, text)
-
-        if up and down:
-            up_wr = safe_winrate(up["winrate"])
-            down_wr = safe_winrate(down["winrate"])
-
-            base_msg = "The above findings are derived from historical data analysis"
-            stock_name = up["stock"]
-
-            if up_wr > down_wr:
-                better_msg = f"{stock_name} can be traded in any market trend. However, better results are observed during Uptrend of the market"
-            elif down_wr > up_wr:
-                better_msg = f"{stock_name} can be traded in any market trend. However, better results are observed during Downtrend of the market"
-            else:
-                better_msg = f"{stock_name} can be traded in any market trend. However, same results are observed in both phases"
-
-            message = (
-                f"📊 {up['stock']}\n"
-                + format_table("UPTREND", up)
-                + format_table("DOWNTREND", down)
-                + f"\n📢 {base_msg}\n{better_msg}\n"
-                + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
-                + format_fundamental(fundamental)
-            )
-
-            try:
-                chart_path = create_bar_chart(up["stock"], up_wr, down_wr)
-                send_photo(chat_id, chart_path, message)
-            except:
-                send_message(chat_id, message)
-
-        elif up:
-            send_message(chat_id, f"📊 {up['stock']}" + format_table("UPTREND", up) + format_fundamental(fundamental))
-
-        elif down:
-            send_message(chat_id, f"📊 {down['stock']}" + format_table("DOWNTREND", down) + format_fundamental(fundamental))
-
-        else:
-            suggestions = suggest_stocks(text, uptrend_sheet)
-
-            if suggestions:
-                suggestion_text = "\n".join([f"➡️ {s}" for s in suggestions])
-                send_message(chat_id, f"❌ Stock not found.\n\n🤔 Did you mean:\n{suggestion_text}")
-            else:
-                send_message(chat_id, "❌ Stock not found.\n\n*Hello* I am *Happy* Chatbot for your channel name *ABC of Stocks*. You just typed a wrong Symbol of indian stock, please type a valid stock symbol.")
-
-        return "ok"
-
-    except Exception as e:
-        print("ERROR:", e)
-        return "error"
 
 # =========================
 # RUN
 # =========================
 if __name__ == "__main__":
     app.run()
+    
+
+
