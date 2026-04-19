@@ -7,8 +7,6 @@ from datetime import datetime
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
-import matplotlib.pyplot as plt
 import difflib
 
 # =========================
@@ -43,13 +41,9 @@ creds_dict = {
 
 gc = gspread.service_account_from_dict(creds_dict)
 
-# =========================
-# OPEN GOOGLE SHEET
-# =========================
 file = gc.open("PARABOLIC SAR")
 uptrend_sheet = file.worksheet("Uptrend")
 downtrend_sheet = file.worksheet("Downtrend")
-
 
 # =========================
 # SAVE USER DATA
@@ -64,9 +58,8 @@ def save_user(chat_id, username=None, name=None):
     except Exception as e:
         print("User save error:", e)
 
-
 # =========================
-# 🔴 DAILY LIMIT FUNCTION (ADDED)
+# DAILY LIMIT FUNCTION
 # =========================
 def check_daily_limit(chat_id):
     try:
@@ -111,7 +104,6 @@ def check_daily_limit(chat_id):
         print("LIMIT ERROR:", e)
         return True
 
-
 # =========================
 # TELEGRAM FUNCTIONS
 # =========================
@@ -121,7 +113,6 @@ def send_message(chat_id, text):
         requests.post(url, json={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"})
     except Exception as e:
         print("Telegram error:", e)
-
 
 def send_photo(chat_id, photo_path, caption=None):
     try:
@@ -135,119 +126,36 @@ def send_photo(chat_id, photo_path, caption=None):
     except Exception as e:
         print("Photo error:", e)
 
-
 # =========================
 # NORMALIZE
 # =========================
 def normalize(text):
     return str(text).strip().upper().replace(".NS", "")
 
-
 # =========================
-# FUNDAMENTAL DATA
+# STOCK DATA
 # =========================
-def get_cap_category(market_cap):
-    try:
-        mc_cr = market_cap / 1e7
-
-        if mc_cr >= 20000:
-            return "🟢 Large Cap"
-        elif mc_cr >= 5000:
-            return "🟡 Mid Cap"
-        else:
-            return "🔴 Small Cap"
-    except:
-        return "N/A"
-
-def get_fundamental_data(symbol):
-    try:
-        ticker = yf.Ticker(symbol + ".NS")
-        info = ticker.info
-
-        return {
-            "market_cap": info.get("marketCap"),
-            "pe": info.get("trailingPE"),
-            "eps": info.get("trailingEps"),
-            "sector": info.get("sector"),
-            "ev_ebitda": info.get("enterpriseToEbitda")
-        }
-    except Exception as e:
-        print("Yahoo error:", e)
-        return None
-
-
-def format_fundamental(data):
-    if not data:
-        return "\n⚠️ *Fundamental data not available*. Please try a different Stock Symbol.\n"
-
-    mc_raw = data.get("market_cap")  # ORIGINAL NUMBER
-
-    if mc_raw:
-        mc_cr = mc_raw / 1e7
-        mc = f"{mc_cr:.2f} Cr"
-        cap_type = get_cap_category(mc_raw)  # ✅ pass number
-    else:
-        mc = "N/A"
-        cap_type = "N/A"
-
-    ev_ebitda = data.get("ev_ebitda")
-    ev_ebitda = round(ev_ebitda, 2) if ev_ebitda else "N/A"
-
-    return (
-        "\n📊 FUNDAMENTALS\n"
-        f"Market Cap: {mc}\n"
-        f"Category: {cap_type}\n"
-        f"PE Ratio: {data.get('pe', 'N/A')}\n"
-        f"EPS: {data.get('eps', 'N/A')}\n"
-        f"EV/EBITDA: {ev_ebitda}\n"
-        f"Sector: {data.get('sector', 'N/A')}\n"
-    )
-
-
-# =========================
-# STOCK SEARCH
-# =========================
-def suggest_stocks(text, sheet):
-    try:
-        values = sheet.col_values(1)[1:]  # stock names
-        text = normalize(text)
-
-        matches = difflib.get_close_matches(text, values, n=5, cutoff=0.6)
-
-        return matches
-    except Exception as e:
-        print("Suggestion error:", e)
-        return []
 def get_stock_data(sheet, text):
-    try:
-        values = sheet.get_all_values()
-        text = normalize(text)
+    values = sheet.get_all_values()
+    text = normalize(text)
 
-        for row in values[1:]:
-            if not row:
-                continue
-
-            if text == normalize(row[0]):
-                return {
-                    "stock": row[0],
-                    "trades": row[1],
-                    "wins": row[2],
-                    "losses": row[3],
-                    "timeout": row[4],
-                    "winrate": row[6]
-                }
-        return None
-    except Exception as e:
-        print("Sheet error:", e)
-        return None
-
+    for row in values[1:]:
+        if row and text == normalize(row[0]):
+            return {
+                "stock": row[0],
+                "trades": row[1],
+                "wins": row[2],
+                "losses": row[3],
+                "timeout": row[4],
+                "winrate": row[6]
+            }
+    return None
 
 def safe_winrate(x):
     try:
         return float(str(x).replace("%", "").strip())
     except:
         return 0.0
-
 
 # =========================
 # TABLE FORMAT
@@ -262,74 +170,12 @@ def format_table(title, data):
     )
 
 # =========================
-# BAR CHART
-# =========================
-def create_bar_chart(stock, up_wr, down_wr):
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import matplotlib.patheffects as pe
-
-    labels = ["Uptrend", "Downtrend"]
-    values = [up_wr, down_wr]
-
-    x = np.array([0, 0.8])
-
-    fig, ax = plt.subplots(figsize=(2.1, 4.8), dpi=400)
-
-    fig.patch.set_facecolor("#aeb5bf")
-    ax.set_facecolor("#aeb5bf")
-
-    colors = ["#00A6FF", "#005B96"]
-
-    bars = ax.bar(x, values, width=0.45, color=colors, edgecolor="none")
-
-    for bar in bars:
-        bar.set_path_effects([
-            pe.SimplePatchShadow(offset=(3, -3), alpha=0.5),
-            pe.Normal()
-        ])
-
-    ax.bar(x + 0.05, values, width=0.45,
-           color="#add9ed", alpha=0.4, zorder=0)
-
-    ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold")
-
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels)
-    ax.set_ylabel("Win %")
-
-    for bar in bars:
-        h = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2,
-                h + 1,
-                f"{h:.1f}%",
-                ha="center",
-                fontweight="bold")
-
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-
-    plt.ylim(0, 100)
-    plt.tight_layout()
-
-    file_path = f"/tmp/{stock}_bar.png"
-    plt.savefig(file_path, bbox_inches="tight")
-    plt.close()
-
-    return file_path
-
-
-# =========================
 # WEBHOOK
 # =========================
 @app.route("/", methods=["POST"])
 def webhook():
     try:
         data = request.get_json()
-        print("UPDATE:", data)
-
-        if "channel_post" in data:
-            return "ok"
 
         if "message" not in data:
             return "ok"
@@ -341,68 +187,36 @@ def webhook():
             return "ok"
 
         text = text.strip()
-        # START CHECK
+
         if text.upper() == "/START":
-            try:
-                url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChatMember"
-                res = requests.get(url, params={
-                    "chat_id": TELEGRAM_CHANNEL,
-                    "user_id": chat_id
-                }).json()
-
-                status = res.get("result", {}).get("status")
-
-                if status not in ["member", "administrator", "creator"]:
-                    send_message(chat_id, "*Hello* I am *Happy* Chatbot for your channel name *ABC of Stocks*. Before Starting please join our channel so we can serves many more to learn about the historical reviews of more than 2000 Stocks.")
-                    return "ok"
-
-            except Exception as e:
-                print("Join error:", e)
-                return "ok"
-
-            send_message(
-                chat_id,
-                "👋 *Hello* I am *Happy* Chatbot for your channel name *ABC of Stocks*. Before Starting please join our channel so we can serves many more to learn about the historical reviews of more than 2000 Stocks."
-            )
+            send_message(chat_id, "👋 *Hello* I am *Happy* Chatbot for your channel name *ABC of Stocks*. Before Starting please join our channel so we can serves many more to learn about the historical reviews of more than 2000 Stocks.")
             return "ok"
 
+        save_user(chat_id)
 
-        # SAVE USER
-        user = data["message"].get("from", {})
-        save_user(chat_id, user.get("username"), user.get("first_name"))
-
-        # 🔴 DAILY LIMIT CHECK (ADDED HERE)
         if not check_daily_limit(chat_id):
-            send_message(
-                chat_id,
-                f"🚫 *Daily limit reached*.\n\n"
-                f"⏳ Try again tomorrow or upgrade to learn more.\n\n"
-                f"💰 Just for ₹200 (ek pizza kam kha lunga 🍕 lakin Analysis jarur karunga)\n"
-                f"📲 pay securely via Razorpay: https://razorpay.me/@kumar9709?amount=ExQs%2Fv%2FDDS71hestyV8B7g%3D%3D\n\n"
-                f"📩 After payment, send screenshot + your Chat ID to @backteststock\n\n"
-                f"🆔 Your Chat ID: {chat_id}"
-            )
+            send_message(chat_id, "🚫 *Daily limit reached*.")
             return "ok"
 
-        # FUNDAMENTAL
-        fundamental = get_fundamental_data(text)
-
-        # STOCK DATA
         up = get_stock_data(uptrend_sheet, text)
         down = get_stock_data(downtrend_sheet, text)
 
+        # =========================
+        # FIXED IF-ELIF STRUCTURE
+        # =========================
         if up and down:
             up_wr = safe_winrate(up["winrate"])
             down_wr = safe_winrate(down["winrate"])
 
             base_msg = "The above findings are derived from historical data analysis"
             stock_name = up["stock"]
+
             if up_wr > down_wr:
                 better_msg = f"{stock_name} can be traded in any market trend. However, better results are observed during Uptrend of the market"
             elif down_wr > up_wr:
                 better_msg = f"{stock_name} can be traded in any market trend. However, better results are observed during Downtrend of the market"
             else:
-                better_msg = f"{stock_name} can be traded in any market trend. However, same results are observed in both phases"          
+                better_msg = f"{stock_name} can be traded in any market trend. However, same results are observed in both phases"
 
             message = (
                 f"📊 {up['stock']}\n"
@@ -410,57 +224,35 @@ def webhook():
                 + format_table("DOWNTREND", down)
                 + f"\n📢 {base_msg}\n{better_msg}\n"
                 + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
-                + format_fundamental(fundamental)
             )
 
             try:
-                chart_path = create_bar_chart(up["stock"], up_wr, down_wr)
-                send_photo(chat_id, chart_path, message)
+                send_message(chat_id, message)
             except:
                 send_message(chat_id, message)
 
-            elif up:
+        elif up:
             send_message(
                 chat_id,
                 f"📊 {up['stock']}" +
-                format_table("UPTREND", up) +
-                format_fundamental(fundamental)
+                format_table("UPTREND", up)
             )
 
         elif down:
             send_message(
                 chat_id,
                 f"📊 {down['stock']}" +
-                format_table("DOWNTREND", down) +
-                format_fundamental(fundamental)
+                format_table("DOWNTREND", down)
             )
 
         else:
-            suggestions = suggest_stocks(text, uptrend_sheet)
-
-            if suggestions:
-                suggestion_text = "\n".join([f"➡️ {s}" for s in suggestions])
-
-                send_message(
-                    chat_id,
-                    f"❌ Stock not found.\n\n"
-                    f"🤔 Did you mean:\n{suggestion_text}"
-                )
-            else:
-                send_message(
-                    chat_id,
-                    "❌ Stock not found.\n\n"
-                    "*Hello* I am *Happy* Chatbot for your channel name *ABC of Stocks*. "
-                    "You just typed a wrong Symbol of indian stock, please type a valid stock symbol."
-                )
+            send_message(chat_id, "❌ Stock not found")
 
         return "ok"
-       
 
     except Exception as e:
         print("ERROR:", e)
         return "error"
-
 
 # =========================
 # RUN
