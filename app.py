@@ -258,8 +258,8 @@ def create_bar_chart(stock, up_wr, down_wr):
     x = np.array([0, 0.8])
 
     fig, ax = plt.subplots(figsize=(2.1, 3.8), dpi=400)
-    fig.patch.set_facecolor("black")
-    ax.set_facecolor("black")
+    fig.patch.set_facecolor("#0a0a0a")
+    ax.set_facecolor("#111111")
 
     bar_width = 0.45
 
