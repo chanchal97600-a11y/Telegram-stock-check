@@ -306,7 +306,7 @@ def create_bar_chart(stock, up_wr, down_wr):
     # 🔥 PURE PINK (5 shades)
     pink_cmap = LinearSegmentedColormap.from_list(
         "pink",
-        ["#4d0033", "#cc0066", "#ff3399", "#ff80bf", "#ffd6eb"]
+        ["#1B6CA8", "#2D9CDB", "#6EC1E4", "#2D9CDB" "#1B6CA8"
     )
 
     # --- Gradient Function ---
