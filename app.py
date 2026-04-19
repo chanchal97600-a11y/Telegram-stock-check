@@ -259,7 +259,7 @@ def create_bar_chart(stock, up_wr, down_wr):
     fig.patch.set_facecolor("#aeb5bf")
     ax.set_facecolor("#aeb5bf")
 
-    colors = ["#00A6FF", "#005B96"]
+    colors = ["#00bbff", "#007d96"]
     bars = ax.bar(x, values, width=0.45, color=colors, edgecolor="none")
 
     for bar in bars:
@@ -268,7 +268,7 @@ def create_bar_chart(stock, up_wr, down_wr):
             pe.Normal()
         ])
 
-    ax.bar(x + 0.05, values, width=0.55, color="#add9ed", alpha=0.8)
+    ax.bar(x + 0.05, values, width=0.55, color="#adeded", alpha=0.8)
 
     ax.set_title(f"{stock} Winrate Comparison", fontsize=13, fontweight="bold")
     ax.set_xticks(x)
