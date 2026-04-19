@@ -361,13 +361,13 @@ def webhook():
             down_wr = safe_winrate(down["winrate"])
 
             base_msg = "The above findings are derived from historical data analysis"
-
+            stock_name = up["stock"]
             if up_wr > down_wr:
-                better_msg = "TCS can be traded in any market trend. However, better results are observed during Uptrend phases"
+                better_msg = f"{stock_name} can be traded in any market trend. However, better results are observed during Uptrend phases"
             elif down_wr > up_wr:
-                better_msg = "TCS can be traded in any market trend. However, better results are observed during downtrend phases"
+                better_msg = f"{stock_name} can be traded in any market trend. However, better results are observed during Downtrend phases"
             else:
-                better_msg = "TCS can be traded in any market trend. However, Same results are observed in both Phases"
+                better_msg = f"{stock_name} can be traded in any market trend. However, same results are observed in both phases"          
 
             message = (
                 f"📊 {up['stock']}\n"
