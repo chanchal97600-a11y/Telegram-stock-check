@@ -318,7 +318,7 @@ def webhook():
                 status = res.get("result", {}).get("status")
 
                 if status not in ["member", "administrator", "creator"]:
-                    send_message(chat_id, "Hello!! Welcome, I am a Chatbot for the Channel name ABC of Stocks. Before Starting please join our channel so we can serves many more to learn about the historical reviews of more than 2000 Stocks.")
+                    send_message(chat_id, "Hello I am Happy Chatbot for you channel name ABC of Stocks. Before Starting please join our channel so we can serves many more to learn about the historical reviews of more than 2000 Stocks.")
                     return "ok"
 
             except Exception as e:
@@ -327,7 +327,7 @@ def webhook():
 
             send_message(
                 chat_id,
-                "👋 Hello!! Welcome, I am a Chatbot for the Channel name ABC of Stocks. Before Starting please join our channel so we can serves many more to learn about the historical reviews of more than 2000 Stocks."
+                "👋 Hello I am Happy Chatbot for you channel name ABC of Stocks. Before Starting please join our channel so we can serves many more to learn about the historical reviews of more than 2000 Stocks."
             )
             return "ok"
 
@@ -399,7 +399,7 @@ def webhook():
             )
 
         else:
-            send_message(chat_id, "Send valid NSE stock like RELIANCE, TCS")
+            send_message(chat_id, "Hello I am Happy Chatbot for you channel name ABC of Stocks. You just typed a wrong Symbol of indian stock,I will be really happy if you  type a valid stock Symbol")
 
         return "ok"
 
