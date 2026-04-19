@@ -421,7 +421,7 @@ def handle_start(chat_id):
         print("Join error:", e)
         return True
 
-    send_message(chat_id, "✅ You are verified!\nNow you can use the bot.")
+    send_message(chat_id, "✅ You are verified!\nThankyou for joining our channel, Here you can find the histocial Win ratio of all the Stocks and do your analysis yourown, just typed a correct symbol.")
     return True
 
 
