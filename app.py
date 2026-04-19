@@ -290,36 +290,36 @@ def create_bar_chart(stock, up_wr, down_wr):
 
     # --- Gradient Function ---
     def apply_cylindrical_gradient(ax, bar, cmap):
-    x0, y0 = bar.get_x(), bar.get_y()
-    w, h = bar.get_width(), bar.get_height()
+        x0, y0 = bar.get_x(), bar.get_y()
+        w, h = bar.get_width(), bar.get_height()
 
     # 🔥 VERTICAL GRADIENT (bottom → top)
-    grad = np.linspace(0, 1, 256).reshape(256, 1)
-    grad = np.repeat(grad, 256, axis=1)
+        grad = np.linspace(0, 1, 256).reshape(256, 1)
+        grad = np.repeat(grad, 256, axis=1)
 
-    ax.imshow(
-        grad,
-        extent=[x0, x0 + w, 0, h],
-        origin="lower",
-        aspect="auto",
-        cmap=cmap,
-        clip_path=bar,
-        clip_on=True,
-        zorder=2
-    )
+        ax.imshow(
+            grad,
+            extent=[x0, x0 + w, 0, h],
+            origin="lower",
+            aspect="auto",
+            cmap=cmap,
+            clip_path=bar,
+            clip_on=True,
+            zorder=2
+        )
 
     # 🔥 Optional: soft center shine (keep or remove)
-    highlight = np.linspace(0, 1, 256)
-    highlight = np.tile(highlight, (256, 1))
+        highlight = np.linspace(0, 1, 256)
+        highlight = np.tile(highlight, (256, 1))
 
-    ax.imshow(
-        highlight,
-        extent=[x0 + w*0.3, x0 + w*0.7, 0, h],
-        origin="lower",
-        aspect="auto",
-        cmap=LinearSegmentedColormap.from_list(
-            "shine",
-            ["#ffffff00", "#ffffff55", "#ffffffaa", "#ffffff55", "#ffffff00"]
+        ax.imshow(
+            highlight,
+            extent=[x0 + w*0.3, x0 + w*0.7, 0, h],
+            origin="lower",
+            aspect="auto",
+            cmap=LinearSegmentedColormap.from_list(
+                "shine",
+                ["#ffffff00", "#ffffff55", "#ffffffaa", "#ffffff55", "#ffffff00"]
         ),
         clip_path=bar,
         clip_on=True,
