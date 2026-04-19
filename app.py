@@ -244,8 +244,8 @@ def format_table(title, data):
         f"{data['trades']:<11} | {data['wins']:<7} | {data['losses']:<6} | {data['timeout']:<8} | {data['winrate']:<11}\n"
     )
 
-# HORIZONTAL GRADIENT BAR CHART (ORANGE + PINK, ROYAL BLUE BG)
-# ===========================================================
+# HORIZONTAL GRADIENT BAR CHART (FIXED ALIGNMENT + BG GRADIENT)
+# ============================================================
 def create_bar_chart(stock, up_wr, down_wr):
     import numpy as np
     import matplotlib.pyplot as plt
@@ -255,14 +255,33 @@ def create_bar_chart(stock, up_wr, down_wr):
 
     labels = ["Uptrend", "Downtrend"]
     values = [up_wr, down_wr]
-    y = np.array([0, 0.7])  # spacing between bars
 
-    # 🔥 Royal blue background
-    fig, ax = plt.subplots(figsize=(5.5, 2.2), dpi=400)
+    # 🔥 Adjusted positions (Uptrend slightly higher)
+    y = np.array([0.9, 0.2])
+
+    fig, ax = plt.subplots(figsize=(5.5, 2.3), dpi=400)
+
+    # 🔥 ROYAL BLUE BACKGROUND GRADIENT
+    bg_grad = np.linspace(0, 1, 256).reshape(256, 1)
+    bg_grad = np.repeat(bg_grad, 256, axis=1)
+
+    bg_cmap = LinearSegmentedColormap.from_list(
+        "royal_bg",
+        ["#0b1f5c", "#123a9c", "#1f4ed8", "#123a9c", "#0b1f5c"]
+    )
+
+    ax.imshow(
+        bg_grad,
+        extent=[0, 100, 0, 1.2],
+        aspect="auto",
+        cmap=bg_cmap,
+        zorder=0
+    )
+
     fig.patch.set_facecolor("#0b1f5c")
-    ax.set_facecolor("#0b1f5c")
+    ax.set_facecolor("none")
 
-    bar_height = 0.28  # 🔥 long & thin bars
+    bar_height = 0.28  # 🔥 SAME for both bars
 
     # --- Rounded Bars ---
     bars = []
@@ -278,24 +297,23 @@ def create_bar_chart(stock, up_wr, down_wr):
         ax.add_patch(bar)
         bars.append(bar)
 
-    # 🔥 ORANGE GRADIENT
+    # 🔥 PURE ORANGE (5 shades)
     orange_cmap = LinearSegmentedColormap.from_list(
         "orange",
-        ["#3d1f00", "#ff8c00", "#ffa94d", "#ffd8a8"]
+        ["#4d1f00", "#cc5200", "#ff8000", "#ffb366", "#ffe0cc"]
     )
 
-    # 🔥 PINK GRADIENT
+    # 🔥 PURE PINK (5 shades)
     pink_cmap = LinearSegmentedColormap.from_list(
         "pink",
-        ["#3d0026", "#ff4da6", "#ff80bf", "#ffc2e0"]
+        ["#4d0033", "#cc0066", "#ff3399", "#ff80bf", "#ffd6eb"]
     )
 
-    # --- Gradient Function (LEFT → RIGHT) ---
+    # --- Gradient Function ---
     def apply_gradient(ax, bar, cmap):
         x0, y0 = bar.get_x(), bar.get_y()
         w, h = bar.get_width(), bar.get_height()
 
-        # Horizontal gradient
         grad = np.linspace(0, 1, 256).reshape(1, 256)
         grad = np.repeat(grad, 256, axis=0)
 
@@ -310,18 +328,18 @@ def create_bar_chart(stock, up_wr, down_wr):
             zorder=2
         )
 
-        # 🔥 Soft shine
+        # subtle shine
         highlight = np.linspace(0, 1, 256)
         highlight = np.tile(highlight, (256, 1))
 
         ax.imshow(
             highlight,
-            extent=[x0 + w*0.25, x0 + w*0.75, y0, y0 + h],
+            extent=[x0 + w*0.3, x0 + w*0.7, y0, y0 + h],
             origin="lower",
             aspect="auto",
             cmap=LinearSegmentedColormap.from_list(
                 "shine",
-                ["#ffffff00", "#ffffff55", "#ffffffaa", "#ffffff55", "#ffffff00"]
+                ["#ffffff00", "#ffffff40", "#ffffff80", "#ffffff40", "#ffffff00"]
             ),
             clip_path=bar,
             clip_on=True,
@@ -370,6 +388,8 @@ def create_bar_chart(stock, up_wr, down_wr):
     ax.spines["left"].set_color("white")
 
     plt.xlim(0, 100)
+    plt.ylim(0, 1.2)
+
     plt.tight_layout()
 
     file_path = f"/tmp/{stock}_bar.png"
@@ -377,7 +397,6 @@ def create_bar_chart(stock, up_wr, down_wr):
     plt.close()
 
     return file_path
-
 # =========================
 # WEBHOOK
 # =========================
