@@ -381,12 +381,12 @@ def webhook():
             try:
                 card_path = create_stock_card(stock_name, up, down, fundamental)
 
-                    if card_path:
-                         send_photo(chat_id, card_path)
-                    else:
-                        send_message(chat_id, message)
+                if card_path:
+                    send_photo(chat_id, card_path)
+                else:
+                    send_message(chat_id, message)
             except:
-                send_message(chat_id, message)
+                  send_message(chat_id, message)
 
         elif up:
             send_message(chat_id, f"📊 {up['stock']}" + format_table("UPTREND", up) + format_fundamental(fundamental))
