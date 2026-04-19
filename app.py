@@ -436,18 +436,18 @@ def webhook():
         else:
         suggestions = suggest_stocks(text, uptrend_sheet)
 
-    if suggestions:
-        suggestion_text = "\n".join([f"➡️ {s}" for s in suggestions])
+        if suggestions:
+            suggestion_text = "\n".join([f"➡️ {s}" for s in suggestions])
 
-        send_message(
-            chat_id,
-            f"❌ Stock not found.\n\n"
-            f"🤔 Did you mean:\n{suggestion_text}"
-        )
-    else:
-        send_message(
-            chat_id,
-            "❌ Stock not found.\n\n*Hello* I am *Happy* Chatbot for your channel name *ABC of Stocks*. You just typed a wrong Symbol of indian stock,I will be really happy if you  type a valid stock Symbol")
+            send_message(
+                chat_id,
+                f"❌ Stock not found.\n\n"
+                f"🤔 Did you mean:\n{suggestion_text}"
+            )
+        else:
+            send_message(
+                chat_id,
+                "❌ Stock not found.\n\n*Hello* I am *Happy* Chatbot for your channel name *ABC of Stocks*. You just typed a wrong Symbol of indian stock,I will be really happy if you  type a valid stock Symbol")
       
         return "ok"
 
