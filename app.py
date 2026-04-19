@@ -419,42 +419,43 @@ def webhook():
             except:
                 send_message(chat_id, message)
 
-        elif up:
-            send_message(chat_id,
+            elif up:
+            send_message(
+                chat_id,
                 f"📊 {up['stock']}" +
                 format_table("UPTREND", up) +
                 format_fundamental(fundamental)
             )
 
+        elif down:
+            send_message(
+                chat_id,
+                f"📊 {down['stock']}" +
+                format_table("DOWNTREND", down) +
+                format_fundamental(fundamental)
+            )
 
-    elif down:
-    send_message(
-        chat_id,
-        f"📊 {down['stock']}" +
-        format_table("DOWNTREND", down) +
-        format_fundamental(fundamental)
-    )
+        else:
+            suggestions = suggest_stocks(text, uptrend_sheet)
 
-else:
-    suggestions = suggest_stocks(text, uptrend_sheet)
+            if suggestions:
+                suggestion_text = "\n".join([f"➡️ {s}" for s in suggestions])
 
-    if suggestions:
-        suggestion_text = "\n".join([f"➡️ {s}" for s in suggestions])
+                send_message(
+                    chat_id,
+                    f"❌ Stock not found.\n\n"
+                    f"🤔 Did you mean:\n{suggestion_text}"
+                )
+            else:
+                send_message(
+                    chat_id,
+                    "❌ Stock not found.\n\n"
+                    "*Hello* I am *Happy* Chatbot for your channel name *ABC of Stocks*. "
+                    "You just typed a wrong Symbol of indian stock, please type a valid stock symbol."
+                )
 
-        send_message(
-            chat_id,
-            f"❌ Stock not found.\n\n"
-            f"🤔 Did you mean:\n{suggestion_text}"
-        )
-    else:
-        send_message(
-            chat_id,
-            "❌ Stock not found.\n\n"
-            "*Hello* I am *Happy* Chatbot for your channel name *ABC of Stocks*. "
-            "You just typed a wrong Symbol of indian stock, please type a valid stock symbol."
-        )
-
-return "ok"
+        return "ok"
+       
 
     except Exception as e:
         print("ERROR:", e)
