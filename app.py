@@ -306,6 +306,31 @@ def webhook():
             return "ok"
 
         text = text.strip()
+        # START CHECK
+        if text.upper() == "/START":
+            try:
+                url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChatMember"
+                res = requests.get(url, params={
+                    "chat_id": TELEGRAM_CHANNEL,
+                    "user_id": chat_id
+                }).json()
+
+                status = res.get("result", {}).get("status")
+
+                if status not in ["member", "administrator", "creator"]:
+                    send_message(chat_id, "🚫 Please join channel first")
+                    return "ok"
+
+            except Exception as e:
+                print("Join error:", e)
+                return "ok"
+
+            send_message(
+                chat_id,
+                "👋 Welcome! Here you can find the Historic backtest Analysis of more than 2000 Stocks, just type a stock symbol and get the details."
+            )
+            return "ok"
+
 
         # SAVE USER
         user = data["message"].get("from", {})
