@@ -48,6 +48,7 @@ gc = gspread.service_account_from_dict(creds_dict)
 file = gc.open("PARABOLIC SAR")
 Bullish_sheet = file.worksheet("Bullish")
 Bearish_sheet = file.worksheet("Bearish")
+StockSignals_sheet = file.worksheet("StockSignals")
 
 # =========================
 # SAVE USER DATA
@@ -228,6 +229,36 @@ def get_stock_data(sheet, text):
         print("Sheet error:", e)
         return None
 
+def get_last_signal(sheet, symbol):
+    try:
+        values = sheet.get_all_values()
+        symbol = normalize(symbol)
+
+        last_row = None
+
+        for row in values[1:]:   # skip header
+            if not row:
+                continue
+
+            if symbol == normalize(row[0]):
+                last_row = row   # keep updating → last match
+
+        if last_row:
+            return {
+                "buy_date": last_row[1],
+                "buy_price": last_row[2],
+                "status": last_row[3],
+                "sell_date": last_row[4],
+                "sell_price": last_row[5],
+                "trend": last_row[6]
+            }
+
+        return None
+
+    except Exception as e:
+        print("StockSignals error:", e)
+        return None
+
 def safe_winrate(x):
     try:
         return float(str(x).replace("%", "").strip())
@@ -242,6 +273,17 @@ def format_table(title, data):
         f"\n📊 {title}\n"
         "Trades | Wins | Loss | Timeout | Win%\n"
         f"{data['trades']:<11} | {data['wins']:<7} | {data['losses']:<6} | {data['timeout']:<8} | {data['winrate']:<11}\n"
+    )
+
+def format_signal(signal):
+    if not signal:
+        return "\n📡 No recent trade signal found\n"
+
+    return (
+        "\n📡 LAST TRADE SIGNAL\n"
+        f"Buy Date: {signal['buy_date']}\n"
+        f"Buy Price: {signal['buy_price']}\n"
+        f"Status: {signal['status']}\n"
     )
 
 # HORIZONTAL GRADIENT BAR CHART (FIXED ALIGNMENT + BG GRADIENT)
@@ -510,6 +552,7 @@ def webhook():
             )
             return "ok"
         fundamental = get_fundamental_data(text)
+        signal = get_last_signal(StockSignals_sheet, text)
         up = get_stock_data(Bullish_sheet, text)
         down = get_stock_data(Bearish_sheet, text)
         nifty = get_nifty_data()
@@ -536,6 +579,7 @@ def webhook():
                 + f"\n📢 {base_msg}\n{better_msg}\n"
                 + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
                 + "\n"
+                + format_signal(signal)
                 + format_fundamental(fundamental)
             )
 
