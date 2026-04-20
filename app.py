@@ -280,7 +280,7 @@ def format_signal(signal):
         return "\n📡 *No recent trade signal found*\n"
 
     return (
-        "\n📡 *LAST TRADE SIGNAL* \n"
+        "\n📡 As Per History Analysis Last Trade generated on \n"
         f"Buy Date: {signal['buy_date']}\n"
         f"Buy Price: {signal['buy_price']}\n"
         f"Status: {signal['status']}\n"
