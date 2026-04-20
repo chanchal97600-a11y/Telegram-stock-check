@@ -271,16 +271,16 @@ def safe_winrate(x):
 def format_table(title, data):
     return (
         f"\n📊 {title}\n"
-        "Trades | Wins | Loss | Timeout | Win%\n"
+        "*Trades* | *Wins* | *Loss* | *Timeout* | *Win%*\n"
         f"{data['trades']:<11} | {data['wins']:<7} | {data['losses']:<6} | {data['timeout']:<8} | {data['winrate']:<11}\n"
     )
 
 def format_signal(signal):
     if not signal:
-        return "\n📡 No recent trade signal found\n"
+        return "\n📡 *No recent trade signal found*\n"
 
     return (
-        "\n📡 LAST TRADE SIGNAL\n"
+        "\n📡 *LAST TRADE SIGNAL*\n"
         f"Buy Date: {signal['buy_date']}\n"
         f"Buy Price: {signal['buy_price']}\n"
         f"Status: {signal['status']}\n"
