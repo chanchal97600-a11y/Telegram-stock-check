@@ -560,17 +560,14 @@ def webhook():
         if up and down:
             up_wr = safe_winrate(up["winrate"])
             down_wr = safe_winrate(down["winrate"])
-
             base_msg = "The above findings are derived from historical data analysis"
             stock_name = up["stock"]
-
             if up_wr > down_wr:
                 better_msg = f"{stock_name} performs better in Bullish market"
             elif down_wr > up_wr:
                 better_msg = f"{stock_name} performs better in Bearish market"
             else:
                 better_msg = f"{stock_name} performs similarly in both trends"
-
             message = (
                 f"📊 {stock_name}\n"
                 + format_nifty(nifty) + "\n"
@@ -581,7 +578,6 @@ def webhook():
                 + format_signal(signal)
                 + format_fundamental(fundamental)
             )
-
             try:
                 chart_path = create_bar_chart(stock_name, up_wr, down_wr)
                 send_photo(chat_id, chart_path, message)
