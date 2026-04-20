@@ -458,6 +458,18 @@ def get_nifty_data():
     except Exception as e:
         print("NIFTY error:", e)
         return None
+
+def format_nifty(nifty):
+    if not nifty:
+        return "📉 NIFTY: Data not available\n"
+
+    return (
+        f"📈 NIFTY 50\n"
+        f"Price: {nifty['price']}\n"
+        f"100 DMA: {nifty['sma100']}\n"
+        f"Change: {nifty['change']} ({nifty['change_pct']}%)\n"
+        f"Trend: {nifty['trend']}\n"
+    )
 # =========================
 # WEBHOOK
 # =========================
