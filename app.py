@@ -514,6 +514,7 @@ def webhook():
         fundamental = get_fundamental_data(text)
         up = get_stock_data(uptrend_sheet, text)
         down = get_stock_data(downtrend_sheet, text)
+        nifty = get_nifty_data()
 
         if up and down:
             up_wr = safe_winrate(up["winrate"])
