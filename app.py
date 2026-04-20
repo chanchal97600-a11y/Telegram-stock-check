@@ -441,9 +441,9 @@ def get_nifty_data():
         # 🔥 TREND LOGIC (100 SMA)
         # =========================
         if price > sma100:
-            trend = "🟢 Bullish (Above 100 DMA)"
+            trend = "🟢 Bullish"
         elif price < sma100:
-            trend = "🔴 Bearish (Below 100 DMA)"
+            trend = "🔴 Bearish"
         else:
             trend = "⚪ Neutral"
 
