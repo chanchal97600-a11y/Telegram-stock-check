@@ -576,8 +576,7 @@ def webhook():
                 + format_nifty(nifty) + "\n"
                 + format_table("Bullish Trend Trades", up)
                 + format_table("Bearish Trend Trades", down)
-                + f"\n📢 {base_msg}\n{better_msg}\n"
-                + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
+                + f"\n📢 {base_msg}\n{better_msg}\n"                
                 + "\n"
                 + format_signal(signal)
                 + format_fundamental(fundamental)
