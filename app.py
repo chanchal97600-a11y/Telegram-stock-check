@@ -311,7 +311,7 @@ def create_bar_chart(stock, up_wr, down_wr):
 
     pink_cmap = LinearSegmentedColormap.from_list(
         "pink",
-        ["#7a003c", "#cc2f6e", "#ff4da6", "#ff99cc", "#7a003c"]
+        ["#D7D7D8", "#D7D7D8", "#D8D8D8", "#D7D7D8", "#D7D7D8"]
     )
 
     # =========================
