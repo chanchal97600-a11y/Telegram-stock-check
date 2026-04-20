@@ -508,7 +508,7 @@ def format_nifty(nifty):
     return (
         f"📈 NIFTY 50\n"
         f"Current Price: {nifty['price']}\n"
-        f"Trend: {nifty['trend']}\n"
+        f"Current Market Trend: {nifty['trend']}\n"
     )
 # =========================
 # WEBHOOK
