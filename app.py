@@ -294,7 +294,7 @@ def create_bar_chart(stock, up_wr, down_wr):
             (0, yi - bar_height ),
             val,
             bar_height,
-            boxstyle="round,pad=0,rounding_size=05",
+            boxstyle="round,pad=0,rounding_size=1.5",
             linewidth=0,
             facecolor="none"
         )
