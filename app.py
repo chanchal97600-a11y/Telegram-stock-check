@@ -46,8 +46,8 @@ gc = gspread.service_account_from_dict(creds_dict)
 # OPEN GOOGLE SHEET
 # =========================
 file = gc.open("PARABOLIC SAR")
-uptrend_sheet = file.worksheet("Uptrend")
-downtrend_sheet = file.worksheet("Downtrend")
+Bullish_sheet = file.worksheet("Bullish")
+Bearish_sheet = file.worksheet("Bearish")
 
 # =========================
 # SAVE USER DATA
@@ -253,10 +253,10 @@ def create_bar_chart(stock, up_wr, down_wr):
     from matplotlib.colors import LinearSegmentedColormap
     from matplotlib.patches import FancyBboxPatch
 
-    labels = ["Uptrend", "Downtrend"]
+    labels = ["Bullish", "Bearish"]
     values = [up_wr, down_wr]
 
-    # 🔥 Slight vertical shift (Uptrend higher)
+    # 🔥 Slight vertical shift (Bullish higher)
     y = np.array([0.9, 0.2])
 
     fig, ax = plt.subplots(figsize=(5.5, 2.3), dpi=400)
@@ -510,8 +510,8 @@ def webhook():
             )
             return "ok"
         fundamental = get_fundamental_data(text)
-        up = get_stock_data(uptrend_sheet, text)
-        down = get_stock_data(downtrend_sheet, text)
+        up = get_stock_data(Bullish_sheet, text)
+        down = get_stock_data(Bearish_sheet, text)
         nifty = get_nifty_data()
 
         if up and down:
@@ -522,17 +522,17 @@ def webhook():
             stock_name = up["stock"]
 
             if up_wr > down_wr:
-                better_msg = f"{stock_name} performs better in UPTREND market"
+                better_msg = f"{stock_name} performs better in Bullish market"
             elif down_wr > up_wr:
-                better_msg = f"{stock_name} performs better in DOWNTREND market"
+                better_msg = f"{stock_name} performs better in Bearish market"
             else:
                 better_msg = f"{stock_name} performs similarly in both trends"
 
             message = (
                 f"📊 {stock_name}\n"
                 + format_nifty(nifty) + "\n"
-                + format_table("UPTREND", up)
-                + format_table("DOWNTREND", down)
+                + format_table("Bullish", up)
+                + format_table("Bearish", down)
                 + f"\n📢 {base_msg}\n{better_msg}\n"
                 + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
                 + "\n"
@@ -546,13 +546,13 @@ def webhook():
                 send_message(chat_id, message)
 
         elif up:
-            send_message(chat_id, f"📊 {up['stock']}" + format_table("UPTREND", up) + format_fundamental(fundamental))
+            send_message(chat_id, f"📊 {up['stock']}" + format_table("Bullish", up) + format_fundamental(fundamental))
 
         elif down:
-            send_message(chat_id, f"📊 {down['stock']}" + format_table("DOWNTREND", down) + format_fundamental(fundamental))
+            send_message(chat_id, f"📊 {down['stock']}" + format_table("Bearish", down) + format_fundamental(fundamental))
 
         else:
-            suggestions = suggest_stocks(text, uptrend_sheet)
+            suggestions = suggest_stocks(text, Bullish_sheet)
             if suggestions:
                 suggestion_text = "\n".join([f"➡️ {s}" for s in suggestions])
                 send_message(chat_id, f"❌ Hello! Please type a valid Stock Symbol of Indian Stock Market.\n\n🤔 Did you mean:\n{suggestion_text}")
