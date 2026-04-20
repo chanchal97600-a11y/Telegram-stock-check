@@ -412,6 +412,52 @@ def create_bar_chart(stock, up_wr, down_wr):
     plt.close()
 
     return file_path
+
+# =========================
+# NIFTY LIVE DATA (100 DMA BASED TREND)
+# =========================
+def get_nifty_data():
+    try:
+        nifty = yf.Ticker("^NSEI")
+
+        # 🔥 Get enough data for 100 SMA
+        hist = nifty.history(period="6mo", interval="1d")
+
+        if len(hist) < 100:
+            return None
+
+        # 🔥 Calculate 100 SMA
+        hist["SMA100"] = hist["Close"].rolling(window=100).mean()
+
+        latest = hist.iloc[-1]
+
+        price = latest["Close"]
+        sma100 = latest["SMA100"]
+
+        change = price - hist["Close"].iloc[-2]
+        change_pct = (change / hist["Close"].iloc[-2]) * 100
+
+        # =========================
+        # 🔥 TREND LOGIC (100 SMA)
+        # =========================
+        if price > sma100:
+            trend = "🟢 Bullish (Above 100 DMA)"
+        elif price < sma100:
+            trend = "🔴 Bearish (Below 100 DMA)"
+        else:
+            trend = "⚪ Neutral"
+
+        return {
+            "price": round(price, 2),
+            "change": round(change, 2),
+            "change_pct": round(change_pct, 2),
+            "trend": trend,
+            "sma100": round(sma100, 2)
+        }
+
+    except Exception as e:
+        print("NIFTY error:", e)
+        return None
 # =========================
 # WEBHOOK
 # =========================
@@ -473,10 +519,12 @@ def webhook():
 
             message = (
                 f"📊 {stock_name}\n"
+                + format_nifty(nifty) + "\n"
                 + format_table("UPTREND", up)
                 + format_table("DOWNTREND", down)
                 + f"\n📢 {base_msg}\n{better_msg}\n"
                 + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
+                + "\n"
                 + format_fundamental(fundamental)
             )
 
