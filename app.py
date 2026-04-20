@@ -291,10 +291,10 @@ def create_bar_chart(stock, up_wr, down_wr):
     bars = []
     for yi, val in zip(y, values):
         bar = FancyBboxPatch(
-            (0, yi - bar_height / 2),
+            (0, yi - bar_height / 3),
             val,
             bar_height,
-            boxstyle="round,pad=0,rounding_size=02",
+            boxstyle="round,pad=0,rounding_size=05",
             linewidth=0,
             facecolor="none"
         )
