@@ -115,7 +115,7 @@ def send_message(chat_id, text):
         requests.post(url, json={
             "chat_id": chat_id,
             "text": text,
-            "parse_mode": "HTML"
+            "parse_mode": "Markdown"
         })
     except Exception as e:
         print("Telegram error:", e)
@@ -280,7 +280,7 @@ def format_signal(signal):
         return "\n📡 *No recent trade signal found*\n"
 
     return (
-        "\n📡 <b>As Per History Analysis Last Trade generated on</b> \n"
+        "\n📡 As Per History Analysis Last Trade generated on\n"
         f"Buy Date: {signal['buy_date']}\n"
         f"Buy Price: {signal['buy_price']}\n"
         f"Status: {signal['status']}\n"
