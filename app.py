@@ -531,8 +531,8 @@ def webhook():
             message = (
                 f"📊 {stock_name}\n"
                 + format_nifty(nifty) + "\n"
-                + format_table("Bullish", up)
-                + format_table("Bearish", down)
+                + format_table("Bullish Trend Trades", up)
+                + format_table("Bearish Trend Trades", down)
                 + f"\n📢 {base_msg}\n{better_msg}\n"
                 + f"\n📊 COMPARISON\nUP Win%: {up['winrate']} | DOWN Win%: {down['winrate']}\n"
                 + "\n"
