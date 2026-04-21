@@ -280,10 +280,10 @@ def format_signal(signal):
         return "\n📡 *No recent trade signal found*\n"
 
     return (
-        "\n📡 As Per History Analysis Last Trade generated on\n"
+        "\n📡 As Per History Analysis Last Trade generated on the\n"
         f"Date: {signal['buy_date']}\n"
-        f"For the Price RS.: {signal['buy_price']}\n"
-        f"Current Status of the Trade: {signal['status']}\n"
+        f"with the Price ₹: {signal['buy_price']}\n"
+        f"The current Status of the Trade: {signal['status']}\n"
     )
 
 # HORIZONTAL GRADIENT BAR CHART (FIXED ALIGNMENT + BG GRADIENT)
