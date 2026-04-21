@@ -527,6 +527,22 @@ def webhook():
 
         text = data["message"].get("text")
         chat_id = data["message"]["chat"]["id"]
+        # 🔥 FORCE JOIN CHECK 
+        if not is_user_joined(chat_id):
+            send_message(
+                chat_id,
+            "⚠️ You must join our channel first:\n"
+                f"{TELEGRAM_CHANNEL}"
+        )
+        return "ok"
+
+    # 👇 NOW SAFE TO CONTINUE
+        if text == "/start":
+            handle_start(chat_id)
+        else:
+            process_stock(text, chat_id)
+
+        return "ok"
 
         if not text:
             return "ok"
