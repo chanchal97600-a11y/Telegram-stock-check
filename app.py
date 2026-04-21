@@ -511,6 +511,22 @@ def format_nifty(nifty):
         f"Current Market Trend: {nifty['trend']}\n"
     )
 
+def is_user_joined(chat_id):
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChatMember"
+        res = requests.get(url, params={
+            "chat_id": TELEGRAM_CHANNEL,
+            "user_id": chat_id
+        }).json()
+
+        status = res.get("result", {}).get("status")
+
+        return status in ["member", "administrator", "creator"]
+
+    except Exception as e:
+        print("Join check error:", e)
+        return False
+
 # =========================
 # WEBHOOK
 # =========================
