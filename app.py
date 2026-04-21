@@ -605,9 +605,28 @@ def webhook():
         return "error"
 
 # =========================
+# GLOBAL STORAGE (TEMP)
+# =========================
+users_seen = set()
+
+
+# =========================
+# SEND MESSAGE FUNCTION (ASSUMED)
+# =========================
+def send_message(chat_id, text):
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    requests.post(url, data={
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "Markdown"
+    })
+
+
+# =========================
 # /START HANDLER
 # =========================
 def handle_start(chat_id):
+
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getChatMember"
         res = requests.get(url, params={
@@ -617,21 +636,58 @@ def handle_start(chat_id):
 
         status = res.get("result", {}).get("status")
 
+        # ❌ NOT JOINED
         if status not in ["member", "administrator", "creator"]:
             send_message(
                 chat_id,
-                "👋 *Welcome!*\n\n"
+                "👋 Welcome!\n\n"
                 "⚠️ You must join our channel first to use this bot.\n\n"
                 f"👉 Join here: {TELEGRAM_CHANNEL}"
             )
             return False
 
     except Exception as e:
-        print("Join error:", e)
-        return True
+        print("Join check error:", e)
+        # fallback allow
+        pass
 
-    send_message(chat_id, "✅ You are verified!\nThankyou for joining our channel, Here you can find the histocial Win ratio of all the Stocks and do your analysis yourown, just typed a correct symbol.")
+
+    # =========================
+    # FIRST TIME USER CHECK
+    # =========================
+    if chat_id not in users_seen:
+        users_seen.add(chat_id)
+
+        send_message(chat_id,
+            "Hello this is the bot for your channel ABC of Stocks.\n\n"
+            "Here we are doing historical testing of the Stock Buying Strategy 👇\n\n"
+            "🚦 1. Market Direction First\n"
+            "- If market is weak → I scan Downtrend stocks\n"
+            "- If market is strong → I scan Uptrend stocks\n\n"
+            "📈 2. Higher Timeframe Confirmation\n"
+            "- Stock must be bullish on weekly chart\n"
+            "- MACD should be positive and above signal line\n\n"
+            "⚡ 3. Momentum Check (RSI)\n"
+            "- RSI should be between 45 to 65\n"
+            "- RSI must be increasing (showing strength)\n\n"
+            "📊 4. Trend Confirmation\n"
+            "- Price must be above Parabolic SAR\n\n"
+            "🚀 5. Momentum Strength\n"
+            "- MACD Histogram should be positive\n\n"
+            "🎯 In Simple Words:\n"
+            "✔ Uptrend stocks\n"
+            "✔ Strong momentum\n"
+            "✔ Not overbought\n\n"
+            "⚠️ Educational purposes only\n\n"
+            "🔥 Consistency comes from discipline, not prediction."
+        )
+
+    else:
+        send_message(chat_id, "👋 Welcome back! Type a stock symbol to continue analysis.")
+
     return True
+
+
 
 # =========================
 # RUN
