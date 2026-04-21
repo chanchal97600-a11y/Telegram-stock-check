@@ -510,6 +510,7 @@ def format_nifty(nifty):
         f"Current Price: {nifty['price']}\n"
         f"Current Market Trend: {nifty['trend']}\n"
     )
+
 # =========================
 # WEBHOOK
 # =========================
@@ -527,28 +528,22 @@ def webhook():
 
         text = data["message"].get("text")
         chat_id = data["message"]["chat"]["id"]
-        # 🔥 FORCE JOIN CHECK 
-        if not is_user_joined(chat_id):
-            send_message(
-                chat_id,
-            "⚠️ You must join our channel first:\n"
-                f"{TELEGRAM_CHANNEL}"
-        )
-        return "ok"
-
-    # 👇 NOW SAFE TO CONTINUE
-        if text == "/start":
-            handle_start(chat_id)
-        else:
-            process_stock(text, chat_id)
-
-        return "ok"
 
         if not text:
             return "ok"
 
         text = text.strip()
 
+        # 🔥 FORCE JOIN CHECK 
+        if not is_user_joined(chat_id):
+            send_message(
+                chat_id,
+                "⚠️ You must join our channel first:\n"
+                f"{TELEGRAM_CHANNEL}"
+            )
+            return "ok"
+
+        # 👇 NOW SAFE TO CONTINUE
         if text.lower() == "/start":
             handle_start(chat_id)
             return "ok"
@@ -567,6 +562,7 @@ def webhook():
                 f"🆔 Your Chat ID: {chat_id}"
             )
             return "ok"
+
         fundamental = get_fundamental_data(text)
         signal = get_last_signal(StockSignals_sheet, text)
         up = get_stock_data(Bullish_sheet, text)
@@ -576,24 +572,28 @@ def webhook():
         if up and down:
             up_wr = safe_winrate(up["winrate"])
             down_wr = safe_winrate(down["winrate"])
+
             base_msg = "The above findings are derived from historical data analysis"
             stock_name = up["stock"]
+
             if up_wr > down_wr:
                 better_msg = f"{stock_name} performs better in Bullish market"
             elif down_wr > up_wr:
                 better_msg = f"{stock_name} performs better in Bearish market"
             else:
                 better_msg = f"{stock_name} performs similarly in both trends"
+
             message = (
                 f"📊 {stock_name}\n"
                 + format_nifty(nifty) + "\n"
                 + format_table("Bullish Trend Trades", up)
                 + format_table("Bearish Trend Trades", down)
-                + f"\n📢 {base_msg}\n{better_msg}\n"                
+                + f"\n📢 {base_msg}\n{better_msg}\n"
                 + "\n"
                 + format_signal(signal)
                 + format_fundamental(fundamental)
             )
+
             try:
                 chart_path = create_bar_chart(stock_name, up_wr, down_wr)
                 send_photo(chat_id, chart_path, message)
@@ -601,25 +601,41 @@ def webhook():
                 send_message(chat_id, message)
 
         elif up:
-            send_message(chat_id, f"📊 {up['stock']}" + format_table("Bullish", up) + format_fundamental(fundamental))
+            send_message(
+                chat_id,
+                f"📊 {up['stock']}"
+                + format_table("Bullish", up)
+                + format_fundamental(fundamental)
+            )
 
         elif down:
-            send_message(chat_id, f"📊 {down['stock']}" + format_table("Bearish", down) + format_fundamental(fundamental))
+            send_message(
+                chat_id,
+                f"📊 {down['stock']}"
+                + format_table("Bearish", down)
+                + format_fundamental(fundamental)
+            )
 
         else:
             suggestions = suggest_stocks(text, Bullish_sheet)
             if suggestions:
                 suggestion_text = "\n".join([f"➡️ {s}" for s in suggestions])
-                send_message(chat_id, f"❌ Hello! Please type a valid Stock Symbol of Indian Stock Market.\n\n🤔 Did you mean:\n{suggestion_text}")
+                send_message(
+                    chat_id,
+                    f"❌ Hello! Please type a valid Stock Symbol of Indian Stock Market.\n\n"
+                    f"🤔 Did you mean:\n{suggestion_text}"
+                )
             else:
-                send_message(chat_id, "❌ Stock not found.\n\nType a valid Indian stock symbol.")
+                send_message(
+                    chat_id,
+                    "❌ Stock not found.\n\nType a valid Indian stock symbol."
+                )
 
         return "ok"
 
     except Exception as e:
         print("ERROR:", e)
         return "error"
-
 # =========================
 # GLOBAL STORAGE (TEMP)
 # =========================
