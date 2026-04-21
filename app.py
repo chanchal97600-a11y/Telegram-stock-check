@@ -559,8 +559,7 @@ def webhook():
                 "⚠️ Educational purposes only\n\n"
                 "🔥 Consistency comes from discipline, not prediction.\n\n"
                 "🔥 *JUST TYPE A SYMBOL OF INDIAN STOCKS.* "
-            )
-            )
+            )        
             return "ok"
 
         # 👇 NOW SAFE TO CONTINUE
