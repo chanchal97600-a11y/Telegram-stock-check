@@ -642,7 +642,7 @@ def handle_start(chat_id):
                 chat_id,
                 "👋 Welcome!\n\n"
                 "⚠️ You must join our channel first to use this bot.\n\n"
-                f"👉 Join here: {TELEGRAM_CHANNEL}"
+                f"👉 Join here: {TELEGRAM_CHANNEL} \n\n"
                 "Hello this is the bot for your channel ABC of Stocks.\n\n"
                 "Here we are doing historical testing of the Stock Buying Strategy 👇\n\n"
                 "🚦 1. Market Direction First\n"                               
