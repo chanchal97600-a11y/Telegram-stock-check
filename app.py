@@ -574,7 +574,7 @@ def webhook():
                 "✔ Not overbought.\n\n"
                 "⚠️ Educational purposes only\n\n"
                 "🔥 Consistency comes from discipline, not prediction.\n\n"
-                f"🔥 *Join here: {TELEGRAM_CHANNEL} then come back and  TYPE A SYMBOL OF INDIAN STOCKS* "
+                f"🔥 *Join here: {TELEGRAM_CHANNEL} then come back and  TYPE A SYMBOL OF INDIAN STOCKS* /n/n"
             )        
             return "ok"
 
@@ -727,7 +727,7 @@ def handle_start(chat_id):
                 "✔ Not overbought.\n\n"
                 "⚠️ Educational purposes only\n\n"
                 "🔥 Consistency comes from discipline, not prediction.\n\n"
-                "🔥 *Join here: {TELEGRAM_CHANNEL} then come back and  TYPE A SYMBOL OF INDIAN STOCKS.* "
+                f"🔥 *Join here: {TELEGRAM_CHANNEL} then come back and  TYPE A SYMBOL OF INDIAN STOCKS.* "
             )
             return False
 
@@ -764,7 +764,7 @@ def handle_start(chat_id):
             "🔥 *JUST TYPE A SYMBOL OF INDIAN STOCKS.* "
             "⚠️ Educational purposes only\n\n"
             "🔥 Consistency comes from discipline, not prediction.\n\n"
-            "🔥 *Join here: {TELEGRAM_CHANNEL} then come back and  TYPE A SYMBOL OF INDIAN STOCKS* "
+            f"🔥 *Join here: {TELEGRAM_CHANNEL} then come back and  TYPE A SYMBOL OF INDIAN STOCKS* "
         )
 
     else:
