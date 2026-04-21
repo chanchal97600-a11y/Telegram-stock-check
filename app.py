@@ -677,7 +677,7 @@ def handle_start(chat_id):
             "🎯 In Simple Words:\n"
             "✔ Uptrend stocks\n"
             "✔ Strong momentum\n"
-            "✔ Not overbought\n\n"
+            "✔ Not overbought.Just Type the Symbol of indian Stock\n\n"
             "⚠️ Educational purposes only\n\n"
             "🔥 Consistency comes from discipline, not prediction."
         )
