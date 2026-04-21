@@ -538,8 +538,28 @@ def webhook():
         if not is_user_joined(chat_id):
             send_message(
                 chat_id,
-                "⚠️ You must join our channel first:\n"
-                f"{TELEGRAM_CHANNEL}"
+                "👋 Welcome!\n\n"
+                "⚠️ You must join our channel first to use this bot.\n\n"
+                f"👉 Join here: {TELEGRAM_CHANNEL} \n\n"
+                "Hello this is the bot for your channel ABC of Stocks.\n\n"
+                "Here we are doing historical testing of the Stock Buying Strategy 👇\n\n"
+                "🚦 1. Market Direction First\n"                               
+                "📈 2. Higher Timeframe Confirmation\n"
+                "- Stock must be bullish on weekly chart\n"
+                "- MACD should be positive and above signal line\n\n"
+                "⚡ 3. Momentum Check (RSI)\n"
+                "- RSI should not to be over brought\n"               
+                "📊 4. Trend Confirmation\n"              
+                "🚀 5. Momentum Strength\n"
+                "- MACD Histogram should be positive\n\n"
+                "🎯 In Simple Words:\n"
+                "✔ Uptrend stocks\n"
+                "✔ Strong momentum\n"
+                "✔ Not overbought.\n\n"
+                "⚠️ Educational purposes only\n\n"
+                "🔥 Consistency comes from discipline, not prediction.\n\n"
+                "🔥 *JUST TYPE A SYMBOL OF INDIAN STOCKS.* "
+            )
             )
             return "ok"
 
