@@ -574,7 +574,7 @@ def webhook():
                 "✔ Not overbought.\n\n"
                 "⚠️ Educational purposes only\n\n"
                 "🔥 Consistency comes from discipline, not prediction.\n\n"
-                "🔥 *Join here: {TELEGRAM_CHANNEL} then come back and  TYPE A SYMBOL OF INDIAN STOCKS* "
+                f"🔥 *Join here: {TELEGRAM_CHANNEL} then come back and  TYPE A SYMBOL OF INDIAN STOCKS* "
             )        
             return "ok"
 
