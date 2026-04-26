@@ -112,11 +112,14 @@ def check_daily_limit(chat_id):
 def send_message(chat_id, text):
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-        requests.post(url, json={
-            "chat_id": chat_id,
-            "text": text,
-            "parse_mode": "Markdown"
-        })
+        requests.post(
+            url,
+            data={
+                "chat_id": chat_id,
+                "text": text,
+                "parse_mode": "Markdown"
+            }
+        )
     except Exception as e:
         print("Telegram error:", e)
 
@@ -126,12 +129,15 @@ def send_photo(chat_id, photo_path, caption=None):
         with open(photo_path, "rb") as photo:
             requests.post(
                 url,
-                data={"chat_id": chat_id, "caption": caption or ""},
+                data={
+                    "chat_id": chat_id,
+                    "caption": caption or "",
+                    "parse_mode": "Markdown"
+                },
                 files={"photo": photo}
             )
     except Exception as e:
         print("Photo error:", e)
-
 # =========================
 # NORMALIZE
 # =========================
