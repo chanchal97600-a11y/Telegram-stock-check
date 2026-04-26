@@ -283,7 +283,7 @@ def format_signal(signal):
         "\n📡 As Per History Analysis Last Trade generated on the\n"
         f"Date {signal['buy_date']}\n"
         f"with the Price ₹: {signal['buy_price']}\n"
-        f"The Status of the Trade as of {datetime.now().strftime('%d-%m-%Y')} is {signal['status']}\n"
+        f"The Status of the *Trade* as of *{datetime.now().strftime('%d-%m-%Y')}* is *{signal['status']}*\n"
     )
 
 # HORIZONTAL GRADIENT BAR CHART (FIXED ALIGNMENT + BG GRADIENT)
