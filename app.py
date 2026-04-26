@@ -625,7 +625,7 @@ def webhook():
                 better_msg = f"{stock_name} performs similarly in *Both trends*"
 
             message = (
-                f"📊 {stock_name}\n"
+                f"📅 *The Status of the {stock_name} as on  {datetime.now().strftime('%d-%m-%Y')}*\n"                
                 + format_nifty(nifty) + "\n"
                 + format_table("Bullish Trend Trades", up)
                 + format_table("Bearish Trend Trades", down)
