@@ -615,7 +615,7 @@ def webhook():
             down_wr = safe_winrate(down["winrate"])
 
             base_msg = "The above findings are derived from historical data analysis"
-            stock_name = up*["stock"]*
+            stock_name = up["stock"]
 
             if up_wr > down_wr:
                 better_msg = f"{stock_name} performs better in *Bullish market*"
