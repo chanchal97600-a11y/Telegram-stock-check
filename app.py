@@ -176,7 +176,7 @@ def get_fundamental_data(symbol):
 
 def format_fundamental(data):
     if not data:
-        return "\n⚠️ *Fundamental data not available*. Please try a different Stock Symbol.\n"
+        return "\n⚠️ *Fundamental data not available*. Please try a different *Stock Symbol*.\n"
 
     mc_raw = data.get("market_cap")
     if mc_raw:
@@ -615,14 +615,14 @@ def webhook():
             down_wr = safe_winrate(down["winrate"])
 
             base_msg = "The above findings are derived from historical data analysis"
-            stock_name = up["stock"]
+            stock_name = up*["stock"]*
 
             if up_wr > down_wr:
-                better_msg = f"{stock_name} performs better in Bullish market"
+                better_msg = f"{stock_name} performs better in *Bullish market*"
             elif down_wr > up_wr:
-                better_msg = f"{stock_name} performs better in Bearish market"
+                better_msg = f"{stock_name} performs better in *Bearish market*"
             else:
-                better_msg = f"{stock_name} performs similarly in both trends"
+                better_msg = f"{stock_name} performs similarly in *Both trends*"
 
             message = (
                 f"📊 {stock_name}\n"
