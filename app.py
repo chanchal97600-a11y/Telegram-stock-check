@@ -191,13 +191,13 @@ def format_fundamental(data):
     ev_ebitda = round(ev_ebitda, 2) if ev_ebitda else "N/A"
 
     return (
-        "\n📊 FUNDAMENTALS\n"
-        f"Market Cap: {mc}\n"
-        f"Category: {cap_type}\n"
-        f"PE Ratio: {data.get('pe', 'N/A')}\n"
-        f"EPS: {data.get('eps', 'N/A')}\n"
-        f"EV/EBITDA: {ev_ebitda}\n"
-        f"Sector: {data.get('sector', 'N/A')}\n"
+        "\n📊 *FUNDAMENTALS*\n"
+        f"*Market Cap*: {mc}\n"
+        f"*Category*: {cap_type}\n"
+        f"*PE Ratio*: {data.get('pe', 'N/A')}\n"
+        f"*EPS*: {data.get('eps', 'N/A')}\n"
+        f"*EV/EBITDA*: {ev_ebitda}\n"
+        f"*Sector*: {data.get('sector', 'N/A')}\n"
     )
 
 # =========================
