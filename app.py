@@ -49,6 +49,7 @@ file = gc.open("PARABOLIC SAR")
 Bullish_sheet = file.worksheet("Bullish")
 Bearish_sheet = file.worksheet("Bearish")
 StockSignals_sheet = file.worksheet("StockSignals")
+Trade_sheet = file.worksheet("TradeBook")
 
 # =========================
 # SAVE USER DATA
@@ -534,6 +535,80 @@ def is_user_joined(chat_id):
         return False
 
 # =========================
+# TRADE BOOK FUNCTIONS
+# =========================
+from datetime import timedelta
+
+def parse_trade_date(d):
+    return datetime.strptime(d, "%d-%m-%Y")
+
+def hold_days(start_date, end_date):
+    s = parse_trade_date(start_date)
+    e = parse_trade_date(end_date)
+
+    count = 0
+    while s <= e:
+        if s.weekday() < 5:
+            count += 1
+        s += timedelta(days=1)
+
+    return count
+
+def get_last_amount():
+    rows = Trade_sheet.get_all_values()
+
+    if len(rows) <= 1:
+        return 10000
+
+    try:
+        last = rows[-1][5]
+        return float(last)
+    except:
+        return 10000
+
+def trade_buy(stock, buy_date):
+    amt = get_last_amount()
+
+    Trade_sheet.append_row([
+        stock.upper(),   # A Stock
+        buy_date,        # B Buy Date
+        "",              # C Sell Date
+        "",              # D Result
+        amt,             # E Initial
+        "",              # F Final
+        ""               # G Hold Days
+    ])
+
+    return amt
+
+def trade_sell(result, stock, sell_date):
+    rows = Trade_sheet.get_all_values()
+    stock = stock.upper()
+
+    for i in range(len(rows), 1, -1):
+        row = rows[i-1]
+
+        if row[0].upper() == stock and row[2] == "":
+            buy_date = row[1]
+            initial = float(row[4])
+
+            if result.lower() == "win":
+                final = initial * 1.25
+            else:
+                final = initial * 0.85
+
+            hold = hold_days(buy_date, sell_date)
+
+            Trade_sheet.update_cell(i, 3, sell_date)
+            Trade_sheet.update_cell(i, 4, result.upper())
+            Trade_sheet.update_cell(i, 6, round(final, 2))
+            Trade_sheet.update_cell(i, 7, hold)
+
+            return initial, final, hold
+
+    return None, None, None
+
+# =========================
 # WEBHOOK
 # =========================
 @app.route("/", methods=["POST"])
@@ -555,6 +630,73 @@ def webhook():
             return "ok"
 
         text = text.strip()
+
+
+# =========================
+# TRADE COMMANDS
+# =========================
+
+if text.lower() == "/trade amount":
+    amt = get_last_amount()
+
+    send_message(chat_id, f"💰 You can invest ₹{amt:,.2f}")
+    return "ok"
+
+
+if text.lower().startswith("/trade buy"):
+    # /trade buy TCS 24-04-2026
+    try:
+        p = text.split()
+
+        stock = p[2]
+        buy_date = p[3]
+
+        amt = trade_buy(stock, buy_date)
+
+        send_message(
+            chat_id,
+            f"✅ Buy saved\n\n"
+            f"Stock: {stock.upper()}\n"
+            f"Date: {buy_date}\n"
+            f"Locked Amount: ₹{amt:,.2f}"
+        )
+
+    except:
+        send_message(chat_id, "Use:\n/trade buy TCS 24-04-2026")
+
+    return "ok"
+
+
+if text.lower().startswith("/trade sell"):
+    # /trade sell win TCS 25-04-2026
+    try:
+        p = text.split()
+
+        result = p[2]
+        stock = p[3]
+        sell_date = p[4]
+
+        initial, final, hold = trade_sell(result, stock, sell_date)
+
+        if initial is None:
+            send_message(chat_id, "❌ Open trade not found")
+            return "ok"
+
+        send_message(
+            chat_id,
+            f"✅ Sell saved\n\n"
+            f"Stock: {stock.upper()}\n"
+            f"Result: {result.upper()}\n"
+            f"Previous: ₹{initial:,.2f}\n"
+            f"New Amount: ₹{final:,.2f}\n"
+            f"Hold Days: {hold}\n\n"
+            f"💰 Now you can invest ₹{final:,.2f}"
+        )
+
+    except:
+        send_message(chat_id, "Use:\n/trade sell win TCS 25-04-2026")
+
+    return "ok"
 
         # 🔥 FORCE JOIN CHECK 
         if not is_user_joined(chat_id):
