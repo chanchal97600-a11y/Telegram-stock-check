@@ -636,67 +636,67 @@ def webhook():
 # TRADE COMMANDS
 # =========================
 
-if text.lower() == "/trade amount":
-    amt = get_last_amount()
+         if text.lower() == "/trade amount":
+             amt = get_last_amount()
 
-    send_message(chat_id, f"💰 You can invest ₹{amt:,.2f}")
-    return "ok"
+             send_message(chat_id, f"💰 You can invest ₹{amt:,.2f}")
+             return "ok"
 
 
-if text.lower().startswith("/trade buy"):
+         if text.lower().startswith("/trade buy"):
     # /trade buy TCS 24-04-2026
-    try:
-        p = text.split()
+             try:
+                 p = text.split()
 
-        stock = p[2]
-        buy_date = p[3]
+                 stock = p[2]
+                 buy_date = p[3]
 
-        amt = trade_buy(stock, buy_date)
+                 amt = trade_buy(stock, buy_date)
 
-        send_message(
-            chat_id,
-            f"✅ Buy saved\n\n"
-            f"Stock: {stock.upper()}\n"
-            f"Date: {buy_date}\n"
-            f"Locked Amount: ₹{amt:,.2f}"
-        )
+                 send_message(
+                     chat_id,
+                     f"✅ Buy saved\n\n"
+                     f"Stock: {stock.upper()}\n"
+                     f"Date: {buy_date}\n"
+                     f"Locked Amount: ₹{amt:,.2f}"
+                 )
 
-    except:
-        send_message(chat_id, "Use:\n/trade buy TCS 24-04-2026")
+             except:
+                 send_message(chat_id, "Use:\n/trade buy TCS 24-04-2026")
 
-    return "ok"
+             return "ok"
 
 
-if text.lower().startswith("/trade sell"):
+         if text.lower().startswith("/trade sell"):
     # /trade sell win TCS 25-04-2026
-    try:
-        p = text.split()
+             try:
+                 p = text.split()
 
-        result = p[2]
-        stock = p[3]
-        sell_date = p[4]
+                 result = p[2]
+                 stock = p[3]
+                 sell_date = p[4]
 
-        initial, final, hold = trade_sell(result, stock, sell_date)
+                 initial, final, hold = trade_sell(result, stock, sell_date)
 
-        if initial is None:
-            send_message(chat_id, "❌ Open trade not found")
-            return "ok"
+                 if initial is None:
+                     send_message(chat_id, "❌ Open trade not found")
+                     return "ok"
 
-        send_message(
-            chat_id,
-            f"✅ Sell saved\n\n"
-            f"Stock: {stock.upper()}\n"
-            f"Result: {result.upper()}\n"
-            f"Previous: ₹{initial:,.2f}\n"
-            f"New Amount: ₹{final:,.2f}\n"
-            f"Hold Days: {hold}\n\n"
-            f"💰 Now you can invest ₹{final:,.2f}"
-        )
+                 send_message(
+                     chat_id,
+                     f"✅ Sell saved\n\n"
+                     f"Stock: {stock.upper()}\n"
+                     f"Result: {result.upper()}\n"
+                     f"Previous: ₹{initial:,.2f}\n"
+                     f"New Amount: ₹{final:,.2f}\n"
+                     f"Hold Days: {hold}\n\n"
+                     f"💰 Now you can invest ₹{final:,.2f}"
+                 )
 
-    except:
-        send_message(chat_id, "Use:\n/trade sell win TCS 25-04-2026")
+             except:
+                send_message(chat_id, "Use:\n/trade sell win TCS 25-04-2026")
 
-    return "ok"
+             return "ok"
 
         # 🔥 FORCE JOIN CHECK 
         if not is_user_joined(chat_id):
