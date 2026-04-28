@@ -612,6 +612,18 @@ def trade_sell(result, stock, sell_date):
     return None, None, None
 
 def delete_trade_by_stock_date(stock, buy_date):
+    rows = Trade_sheet.get_all_values()
+    stock = stock.upper()
+
+    for i in range(len(rows), 1, -1):
+        row = rows[i-1]
+
+        if row[0].upper() == stock and row[1] == buy_date:
+            Trade_sheet.delete_rows(i)
+            amt = get_last_amount()
+            return True, amt
+
+    return False, get_last_amount()
 
 # =========================
 # WEBHOOK
@@ -650,6 +662,27 @@ def webhook():
         # TRADE COMMANDS
         # =========================
         if text.lower().startswith("/trade delete"):
+            try:
+                p = text.split()
+
+                stock = p[2].upper()
+                buy_date = p[3]
+
+                ok, amt = delete_trade_by_stock_date(stock, buy_date)
+
+                if ok:
+                    send_message(
+                        chat_id,
+                        f"🗑 Deleted {stock} ({buy_date})\n\n"
+                        f"💰 Now you can invest ₹{amt:,.2f}"
+                    )
+                else:
+                    send_message(chat_id, "❌ Matching trade not found")
+
+            except:
+                send_message(chat_id, "Use:\n/trade delete TCS 24-04-2026")
+
+            return "ok"
         if text.lower() == "/trade amount":
             amt = get_last_amount()
             send_message(chat_id, f"💰 You can invest ₹{amt:,.2f}")
