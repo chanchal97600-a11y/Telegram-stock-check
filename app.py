@@ -560,11 +560,14 @@ def get_last_amount():
     if len(rows) <= 1:
         return 10000
 
-    try:
-        last = rows[-1][5]
-        return float(last)
-    except:
-        return 10000
+    for row in reversed(rows[1:]):   # bottom to top
+        try:
+            if len(row) > 5 and row[5].strip() != "":
+                return float(row[5])   # Column F
+        except:
+            pass
+
+    return 10000
 
 def trade_buy(stock, buy_date):
     amt = get_last_amount()
