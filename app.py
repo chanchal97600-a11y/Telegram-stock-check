@@ -633,6 +633,18 @@ def webhook():
             return "ok"
 
         text = text.strip()
+
+
+        if text.lower() == "/trade show":
+            rows = Trade_sheet.get_all_values()
+
+    msg = "📒 TradeBook\n\n"
+
+    for row in rows:
+        msg += " | ".join(row) + "\n"
+
+    send_message(chat_id, msg[:4000])   # telegram limit safe
+    return "ok"
         # =========================
         # TRADE COMMANDS
         # =========================
