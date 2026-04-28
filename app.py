@@ -611,6 +611,8 @@ def trade_sell(result, stock, sell_date):
 
     return None, None, None
 
+def delete_trade_by_stock_date(stock, buy_date):
+
 # =========================
 # WEBHOOK
 # =========================
@@ -647,7 +649,7 @@ def webhook():
         # =========================
         # TRADE COMMANDS
         # =========================
-
+        if text.lower().startswith("/trade delete"):
         if text.lower() == "/trade amount":
             amt = get_last_amount()
             send_message(chat_id, f"💰 You can invest ₹{amt:,.2f}")
