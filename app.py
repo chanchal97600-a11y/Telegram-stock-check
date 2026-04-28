@@ -633,12 +633,9 @@ def webhook():
             return "ok"
 
         text = text.strip()
-
-
         if text.lower() == "/trade show":
             rows = Trade_sheet.get_all_values()
-
-    msg = "📒 TradeBook\n\n"
+             msg = "📒 TradeBook\n\n"
 
     for row in rows:
         msg += " | ".join(row) + "\n"
