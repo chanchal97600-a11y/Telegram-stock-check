@@ -625,6 +625,37 @@ def delete_trade_by_stock_date(stock, buy_date):
 
     return False, get_last_amount()
 
+
+# =========================
+# GET STOCKS BY DATE
+# =========================
+def get_stocks_by_date(date_text):
+    try:
+        values = StockSignals_sheet.get_all_values()
+
+        matched_stocks = []
+
+        for row in values[1:]:   # skip header
+            if len(row) < 2:
+                continue
+
+            sheet_date = str(row[1]).strip()   # Buy Date column
+
+            # convert 2026-05-19 → 19-05-2026
+            try:
+                formatted = datetime.strptime(sheet_date, "%Y-%m-%d").strftime("%d-%m-%Y")
+            except:
+                formatted = sheet_date
+
+            if formatted == date_text:
+                matched_stocks.append(row[0])
+
+        return matched_stocks
+
+    except Exception as e:
+        print("DATE SEARCH ERROR:", e)
+        return []
+
 # =========================
 # WEBHOOK
 # =========================
@@ -791,6 +822,34 @@ def webhook():
                 f"🆔 Your Chat ID: {chat_id}"
             )
             return "ok"
+
+                # =========================
+        # DATE SEARCH
+        # =========================
+        try:
+            # check date format DD-MM-YYYY
+            search_date = datetime.strptime(text, "%d-%m-%Y").strftime("%d-%m-%Y")
+
+            stocks = get_stocks_by_date(search_date)
+
+            if stocks:
+                stock_text = ", ".join(stocks)
+
+                send_message(
+                    chat_id,
+                    f"📅 Stocks generated on {search_date}\n\n"
+                    f"{stock_text}"
+                )
+            else:
+                send_message(
+                    chat_id,
+                    f"❌ No stocks found for {search_date}"
+                )
+
+            return "ok"
+
+        except:
+            pass
 
         fundamental = get_fundamental_data(text)
         signal = get_last_signal(StockSignals_sheet, text)
